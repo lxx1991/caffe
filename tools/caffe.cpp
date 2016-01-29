@@ -1,3 +1,5 @@
+#if !defined(_MSC_VER) || defined(BUILD_MEX_INTERFACE)
+
 #ifdef WITH_PYTHON_LAYER
 #include "boost/python.hpp"
 namespace bp = boost::python;
@@ -406,3 +408,5 @@ int main(int argc, char** argv) {
     gflags::ShowUsageWithFlagsRestrict(argv[0], "tools/caffe");
   }
 }
+
+#endif

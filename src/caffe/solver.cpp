@@ -60,6 +60,7 @@ void Solver<Dtype>::Init(const SolverParameter& param) {
     LOG(INFO) << "Solver scaffolding done.";
   }
   iter_ = 0;
+  iter_step_ = 0;
   current_step_ = 0;
 }
 
@@ -270,6 +271,84 @@ void Solver<Dtype>::Step(int iters) {
       requested_early_exit_ = true;
       // Break out of training loop.
       break;
+    }
+  }
+}
+
+template <typename Dtype>
+void Solver<Dtype>::OneIterStep() {
+  vector<Blob<Dtype>*> bottom_vec;
+  static Dtype loss = 0;
+
+  if (iter_step_ == 0)
+  {
+    // zero-init the params
+    for (int i = 0; i < net_->params().size(); ++i) {
+      shared_ptr<Blob<Dtype> > blob = net_->params()[i];
+      switch (Caffe::mode()) {
+      case Caffe::CPU:
+        caffe_set(blob->count(), static_cast<Dtype>(0),
+            blob->mutable_cpu_diff());
+        break;
+      case Caffe::GPU:
+#ifndef CPU_ONLY
+        caffe_gpu_set(blob->count(), static_cast<Dtype>(0),
+            blob->mutable_gpu_diff());
+#else
+        NO_GPU;
+#endif
+        break;
+      }
+    }
+    loss = 0;
+  }
+
+  if (iter_step_ == 0 && param_.test_interval() && iter_ % param_.test_interval() == 0
+      && (iter_ > 0 || param_.test_initialization())) {
+    TestAll();
+  }
+
+  const bool display = param_.display() && iter_ % param_.display() == 0;
+  net_->set_debug_info(display && param_.debug_info());
+  
+  // accumulate the loss and gradient
+  loss += net_->ForwardBackward(bottom_vec)/ param_.iter_size();
+  iter_step_++;
+  if (iter_step_ == param_.iter_size())
+  {
+    // no smoothed reporting
+    if (display) {
+      LOG(INFO) << "Iteration " << iter_ << ", loss = " << loss;
+      const vector<Blob<Dtype>*>& result = net_->output_blobs();
+      int score_index = 0;
+      for (int j = 0; j < result.size(); ++j) {
+        const Dtype* result_vec = result[j]->cpu_data();
+        const string& output_name =
+            net_->blob_names()[net_->output_blob_indices()[j]];
+        const Dtype loss_weight =
+            net_->blob_loss_weights()[net_->output_blob_indices()[j]];
+        for (int k = 0; k < result[j]->count(); ++k) {
+          ostringstream loss_msg_stream;
+          if (loss_weight) {
+            loss_msg_stream << " (* " << loss_weight
+                            << " = " << loss_weight * result_vec[k] << " loss)";
+          }
+          LOG(INFO) << "    Train net output #"
+              << score_index++ << ": " << output_name << " = "
+              << result_vec[k] << loss_msg_stream.str();
+        }
+      }
+    }
+    ApplyUpdate();
+
+    // Increment the internal iter_ counter -- its value should always indicate
+    // the number of times the weights have been updated.
+    iter_step_ = 0;
+    ++iter_;
+
+    // Save a snapshot if needed.
+    if (param_.snapshot() && iter_ % param_.snapshot() == 0) {
+      Snapshot();
     }
   }
 }

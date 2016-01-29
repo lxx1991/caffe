@@ -57,6 +57,7 @@ class Solver {
   virtual void Solve(const char* resume_file = NULL);
   inline void Solve(const string resume_file) { Solve(resume_file.c_str()); }
   void Step(int iters);
+  void OneIterStep();
   // The Restore method simply dispatches to one of the
   // RestoreSolverStateFrom___ protected methods. You should implement these
   // methods to restore the state from the appropriate snapshot type.
@@ -73,7 +74,8 @@ class Solver {
     return test_nets_;
   }
   int iter() { return iter_; }
-
+  int max_iter() const { return param_.max_iter(); }
+  int iter_size() { return param_.iter_size(); };
   // Invoked at specific points during an iteration
   class Callback {
    protected:
@@ -110,7 +112,7 @@ class Solver {
   void UpdateSmoothedLoss(Dtype loss, int start_iter, int average_loss);
 
   SolverParameter param_;
-  int iter_;
+  int iter_,  iter_step_;
   int current_step_;
   shared_ptr<Net<Dtype> > net_;
   vector<shared_ptr<Net<Dtype> > > test_nets_;
