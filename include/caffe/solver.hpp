@@ -75,7 +75,8 @@ class Solver {
   }
   int iter() { return iter_; }
   int max_iter() const { return param_.max_iter(); }
-  int iter_size() { return param_.iter_size(); };
+  int iter_step() { return iter_step_; }
+  int iter_size() { return param_.iter_size(); }
   // Invoked at specific points during an iteration
   class Callback {
    protected:
