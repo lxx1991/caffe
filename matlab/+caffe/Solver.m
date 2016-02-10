@@ -43,7 +43,7 @@ classdef Solver < handle
       max_iter = caffe_('solver_get_max_iter', self.hSolver_self);
     end
     function iter_step = iter_step(self)
-      iter_size = caffe_('solver_get_iter_step', self.hSolver_self);
+      iter_step = caffe_('solver_get_iter_step', self.hSolver_self);
     end
     function iter_size = iter_size(self)
       iter_size = caffe_('solver_get_iter_size', self.hSolver_self);
