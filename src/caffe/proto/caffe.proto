@@ -306,7 +306,7 @@ message ParamSpec {
 // NOTE
 // Update the next available ID when you add a new LayerParameter field.
 //
-// LayerParameter next available layer-specific ID: 145 (last added: crop_param)
+// LayerParameter next available layer-specific ID: 146 (last added: crop_param)
 message LayerParameter {
   optional string name = 1; // the layer name
   optional string type = 2; // the layer type
@@ -381,6 +381,7 @@ message LayerParameter {
   optional InfogainLossParameter infogain_loss_param = 116;
   optional InnerProductParameter inner_product_param = 117;
   optional InputParameter input_param = 143;
+  optional IouMatchLossParameter iou_match_loss_param = 145;
   optional LogParameter log_param = 134;
   optional LRNParameter lrn_param = 118;
   optional MemoryDataParameter memory_data_param = 119;
@@ -826,6 +827,11 @@ message InputParameter {
   repeated BlobShape shape = 1;
 }
 
+message IouMatchLossParameter {
+  optional float lambda = 1 [default = 1.0];
+  optional float clip = 2 [default = -1.0];
+}
+
 // Message that stores parameters used by LogLayer
 message LogParameter {
   // LogLayer computes outputs y = log_base(shift + scale * x), for base > 0.
@@ -1207,6 +1213,7 @@ message V1LayerParameter {
     IMAGE_DATA = 12;
     INFOGAIN_LOSS = 13;
     INNER_PRODUCT = 14;
+    IOU_MATCH_LOSS = 40;
     LRN = 15;
     MEMORY_DATA = 29;
     MULTINOMIAL_LOGISTIC_LOSS = 16;
@@ -1252,6 +1259,7 @@ message V1LayerParameter {
   optional ImageDataParameter image_data_param = 15;
   optional InfogainLossParameter infogain_loss_param = 16;
   optional InnerProductParameter inner_product_param = 17;
+  optional IouMatchLossParameter iou_match_loss_param = 43;
   optional LRNParameter lrn_param = 18;
   optional MemoryDataParameter memory_data_param = 22;
   optional MVNParameter mvn_param = 34;
