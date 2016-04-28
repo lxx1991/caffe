@@ -15,24 +15,39 @@ namespace caffe {
 			x += label[i] * predict[i];
 			y += label[i] + predict[i];
 		}
-		y = std::max(y - x, Dtype(FLT_MIN));
-		return x / y;
+		y = y - x;
+		CHECK_GE(y, x);
+
+		if (y < 1e-8)
+			return 1;
+		else
+			return x / y;
 	}
 
 	template <typename Dtype>
 	void iou_diff(const Dtype* label, const Dtype* predict, Dtype* diff, const int len)
 	{
-		Dtype x = Dtype(0), y = Dtype(0);
+		Dtype x = Dtype(0), y = Dtype(0), a, b;
 		for (int i=0; i<len; i++)
 		{
 			x += label[i] * predict[i];
 			y += label[i] + predict[i];
 		}
-		Dtype a = Dtype(1) / std::max(y - x, Dtype(FLT_MIN)),  b = Dtype(-y) /  std::max((y - x) * (y - x), Dtype(FLT_MIN));
-		for (int i=0; i<len; i++)
+		y = y - x;
+		CHECK_GE(y, x);
+		
+		if (y < 1e-8)
 		{
-			diff[i] = label[i] * a + (Dtype(1) - label[i]) * b;
+			a = Dtype(1) / 1e-8;
+			b = Dtype(-1) / 1e-8;
 		}
+		else
+		{
+			a = Dtype(1) / y;
+			b = Dtype(-x) / (y * y);
+		}
+		for (int i=0; i<len; i++)
+			diff[i] = label[i] * a + (Dtype(1) - label[i]) * b;
 	}
 
 }

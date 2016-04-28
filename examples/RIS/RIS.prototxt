@@ -1,0 +1,659 @@
+###################################### LSTM 1 ######################################
+
+layer {
+  name: "xi_1"
+  type: "Convolution"
+  bottom: "fc8-conv"
+  top: "xi_1"
+  param {
+  	name: "wxi"
+    lr_mult: 2
+    decay_mult: 1
+  }
+  param {
+  	name: "bi"
+    lr_mult: 1
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 100
+    kernel_size: 3
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "i_1"
+  type: "Sigmoid"
+  bottom: "xi_1"
+  top: "i_1"
+}
+layer {
+  name: "xo_1"
+  type: "Convolution"
+  bottom: "fc8-conv"
+  top: "xo_1"
+  param {
+  	name: "wxo"
+    lr_mult: 2
+    decay_mult: 1
+  }
+  param {
+  	name: "bo"
+    lr_mult: 1
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 100
+    kernel_size: 3
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "o_1"
+  type: "Sigmoid"
+  bottom: "xo_1"
+  top: "o_1"
+}
+layer {
+  name: "xg_1"
+  type: "Convolution"
+  bottom: "fc8-conv"
+  top: "xg_1"
+  param {
+  	name: "wxg"
+    lr_mult: 2
+    decay_mult: 1
+  }
+  param {
+  	name: "bg"
+    lr_mult: 1
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 100
+    kernel_size: 3
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "g_1"
+  type: "TanH"
+  bottom: "xg_1"
+  top: "g_1"
+}
+layer {
+  name: "ig_1"
+  type: "Eltwise"
+  bottom: "i_1"
+  bottom: "g_1"
+  top: "c_1"
+  eltwise_param {
+    operation: PROD
+  }
+}
+layer {
+  name: "tc_1"
+  type: "TanH"
+  bottom: "c_1"
+  top: "tc_1"
+}
+layer {
+  name: "h_1"
+  type: "Eltwise"
+  bottom: "tc_1"
+  bottom: "o_1"
+  top: "h_1"
+  eltwise_param {
+    operation: SUM
+  }
+}
+
+######################## spatial inhibition 1 ########################
+layer {
+  name: "feat_map_1"
+  type: "Convolution"
+  bottom: "h_1"
+  top: "feat_map_1"
+  param {
+  	name: "w_score"
+    lr_mult: 2
+    decay_mult: 1
+  }
+  param {
+  	name: "b_score"
+    lr_mult: 1
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 1
+    kernel_size: 3
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "pro_1"
+  type: "Softmax"
+  bottom: "feat_map_1"
+  top: "pro_1"
+}
+layer {
+  name: "log_pro_1"
+  type: "Log"
+  bottom: "pro_1"
+  top: "log_pro_1"
+}
+layer {
+  name: "bias_1"
+  type: "Convolution"
+  bottom: "log_pro_1"
+  top: "bias_1"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+  	name: "b_bias"
+    lr_mult: 1
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 1
+    kernel_size: 1
+    weight_filler {
+      type: "constant"
+      value: 1
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "pro_map_1"
+  type: "Sigmoid"
+  bottom: "bias_1"
+  top: "pro_map_1"
+}
+layer {
+  name: "up_pro_map_1"
+  type: "Deconvolution"
+  bottom: "pro_map_1"
+  top: "up_pro_map_1"
+  param {
+    lr_mult: 0
+  }
+  convolution_param {
+    num_output: 1
+    bias_term: false
+    pad: 4
+    kernel_size: 16
+    stride: 8
+    weight_filler {
+      type: "inter"
+    }
+  }
+}
+layer {
+  name: "score_pool_1"
+  type: "Pooling"
+  bottom: "h_1"
+  top: "score_pool_1"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+
+layer {
+  name: "score_pool_1"
+  type: "Pooling"
+  bottom: "h_1"
+  top: "score_pool_1"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+
+layer {
+  name: "linear_1"
+  type: "InnerProduct"
+  bottom: "score_pool_1"
+  top: "linear_1"
+  param {
+  	name: "w_linear"
+    lr_mult: 1
+    decay_mult: 0
+  }
+  param {
+  	name: "b_linear"
+    lr_mult: 2
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "score_1"
+  type: "Sigmoid"
+  bottom: "linear_1"
+  top: "score_1"
+}
+
+
+###################################### Iter 2 ######################################
+
+layer {
+  name: "xi_2"
+  type: "Convolution"
+  bottom: "fc8-conv"
+  top: "xi_2"
+  param {
+  	name: "wxi"
+    lr_mult: 2
+    decay_mult: 1
+  }
+  param {
+  	name: "bi"
+    lr_mult: 1
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 100
+    kernel_size: 3
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "i_2"
+  type: "Sigmoid"
+  bottom: "xi_2"
+  top: "i_2"
+}
+layer {
+  name: "xf_2"
+  type: "Convolution"
+  bottom: "fc8-conv"
+  top: "xf_2"
+  param {
+  	name: "wxf"
+    lr_mult: 2
+    decay_mult: 1
+  }
+  param {
+  	name: "bf"
+    lr_mult: 1
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 100
+    kernel_size: 3
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "f_2"
+  type: "Sigmoid"
+  bottom: "xf_2"
+  top: "f_2"
+}
+layer {
+  name: "xo_2"
+  type: "Convolution"
+  bottom: "fc8-conv"
+  top: "xo_2"
+  param {
+  	name: "wxo"
+    lr_mult: 2
+    decay_mult: 1
+  }
+  param {
+  	name: "bo"
+    lr_mult: 1
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 100
+    kernel_size: 3
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "o_2"
+  type: "Sigmoid"
+  bottom: "xo_2"
+  top: "o_2"
+}
+layer {
+  name: "xg_2"
+  type: "Convolution"
+  bottom: "fc8-conv"
+  top: "xg_2"
+  param {
+  	name: "wxg"
+    lr_mult: 2
+    decay_mult: 1
+  }
+  param {
+  	name: "bg"
+    lr_mult: 1
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 100
+    kernel_size: 3
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "g_2"
+  type: "TanH"
+  bottom: "xg_2"
+  top: "g_2"
+}
+layer {
+  name: "fc_2"
+  type: "Eltwise"
+  bottom: "f_2"
+  bottom: "c_1"
+  top: "fc_2"
+  eltwise_param {
+    operation: PROD
+  }
+}
+layer {
+  name: "ig_2"
+  type: "Eltwise"
+  bottom: "i_2"
+  bottom: "g_2"
+  top: "ig_2"
+  eltwise_param {
+    operation: PROD
+  }
+}
+layer {
+  name: "c_2"
+  type: "Eltwise"
+  bottom: "fc_2"
+  bottom: "ig_2"
+  top: "c_2"
+  eltwise_param {
+    operation: SUM
+  }
+}
+layer {
+  name: "tc_2"
+  type: "TanH"
+  bottom: "c_2"
+  top: "tc_2"
+}
+layer {
+  name: "h_2"
+  type: "Eltwise"
+  bottom: "tc_2"
+  bottom: "o_2"
+  top: "h_2"
+  eltwise_param {
+    operation: SUM
+  }
+}
+
+
+######################## spatial inhibition 2 ########################
+layer {
+  name: "feat_map_2"
+  type: "Convolution"
+  bottom: "h_2"
+  top: "feat_map_2"
+  param {
+  	name: "w_score"
+    lr_mult: 2
+    decay_mult: 1
+  }
+  param {
+  	name: "b_score"
+    lr_mult: 1
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 2
+    kernel_size: 3
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "pro_2"
+  type: "Softmax"
+  bottom: "feat_map_2"
+  top: "pro_2"
+}
+layer {
+  name: "log_pro_2"
+  type: "Log"
+  bottom: "pro_2"
+  top: "log_pro_2"
+}
+layer {
+  name: "bias_2"
+  type: "Convolution"
+  bottom: "log_pro_2"
+  top: "bias_2"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+  	name: "b_bias"
+    lr_mult: 1
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 1
+    kernel_size: 1
+    weight_filler {
+      type: "constant"
+      value: 1
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "pro_map_2"
+  type: "Sigmoid"
+  bottom: "bias_2"
+  top: "pro_map_2"
+}
+layer {
+  name: "up_pro_map_2"
+  type: "Deconvolution"
+  bottom: "pro_map_2"
+  top: "up_pro_map_2"
+  param {
+    lr_mult: 0
+  }
+  convolution_param {
+    num_output: 1
+    bias_term: false
+    pad: 4
+    kernel_size: 16
+    stride: 8
+    weight_filler {
+      type: "inter"
+    }
+  }
+}
+layer {
+  name: "score_pool_2"
+  type: "Pooling"
+  bottom: "h_2"
+  top: "score_pool_2"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+
+layer {
+  name: "score_pool_2"
+  type: "Pooling"
+  bottom: "h_2"
+  top: "score_pool_2"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+
+layer {
+  name: "linear_2"
+  type: "InnerProduct"
+  bottom: "score_pool_2"
+  top: "linear_2"
+  param {
+  	name: "w_linear"
+    lr_mult: 1
+    decay_mult: 0
+  }
+  param {
+  	name: "b_linear"
+    lr_mult: 2
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "score_2"
+  type: "Sigmoid"
+  bottom: "linear_2"
+  top: "score_2"
+}
+
+
+###################################### Concat ######################################
+
+
+layer {
+  name: "up_pro_map"
+  bottom: "up_pro_map_1"
+  bottom: "up_pro_map_2"
+  top: "up_pro_map"
+  type: "Concat"
+  concat_param {
+    axis: 1
+  }
+}
+
+layer {
+  name: "score"
+  bottom: "score_1"
+  bottom: "score_2"
+  top: "score"
+  type: "Concat"
+  concat_param {
+    axis: 0
+  }
+}
+
+
+layer {
+  name: "loss"
+  type: "IouMatchLoss"
+  bottom: "label"
+  bottom: "up_pro_map"
+  bottom: "score"
+  top: "loss"
+  iou_match_loss_param {
+  	lambda: 1
+  	clip: 5
+  }
+}

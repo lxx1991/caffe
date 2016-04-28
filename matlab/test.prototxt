@@ -1,0 +1,28 @@
+name: "DPN"
+
+input: 'label'
+input_dim: 1
+input_dim: 3
+input_dim: 3
+input_dim: 3
+
+input: 'predict'
+input_dim: 1
+input_dim: 5
+input_dim: 3
+input_dim: 3
+
+input: 'score'
+input_dim: 1
+input_dim: 5
+input_dim: 1
+input_dim: 1
+
+layer {
+  name: "loss"
+  type: "IouMatchLoss"
+  bottom: "label"
+  bottom: "predict"
+  bottom: 'score'
+  top: "loss"
+}

@@ -11,12 +11,11 @@ namespace caffe {
 	template <typename Dtype>
 	bool find(int i, int n, Dtype *edge, Dtype *lx, Dtype *ly, int *my, Dtype *slack, bool *vx, bool *vy)
 	{
-		int t;
 		vx[i] = true;
 		for (int j=0; j<n; j++)
 			if (!vy[j])
 			{
-				t = lx[i] + ly[j] - edge[i*n + j];
+				Dtype t = lx[i] + ly[j] - edge[i*n + j];
 				if (std::abs(t) < 1e-6)
 				{
 					vy[j] = true;
@@ -36,7 +35,6 @@ namespace caffe {
 	void kuhn_munkres(Blob<Dtype> *way, Blob<int> *match)
 	{
 		int n = std::max(way->num(), way->channels());
-
 		Dtype *edge, *lx, *ly, *slack;
 		int *my;
 		bool *vx, *vy;
@@ -47,11 +45,9 @@ namespace caffe {
 		slack = new Dtype[n];
 		vx = new bool[n];
 		vy = new bool[n];
-		
 		memset(lx, 0, sizeof(Dtype) * n);
 		memset(ly, 0, sizeof(Dtype) * n);
 		memset(my, 255, sizeof(int) * n);
-
 		for (int i = 0; i<n; i++)
 			for (int j=0; j<n; j++)
 			{
@@ -64,7 +60,6 @@ namespace caffe {
 					edge[i*n+j] = 0;
 				lx[i] = std::max(lx[i], edge[i*n+j]);
 			}
-
 		for (int i=0; i<n; i++)
 		{
 			for (int j=0; j<n; j++)
@@ -88,10 +83,14 @@ namespace caffe {
 				}
 			}
 		}
-
-		for (int i=0; match->num(); i++)
-			match->mutable_cpu_data()[i] = my[i] < way->num() ? my[i] : -1;
-
+		for (int i=0; i<match->num(); i++)
+		{
+			if (my[i] < way->num())
+				match->mutable_cpu_data()[i] = my[i];
+			else
+				match->mutable_cpu_data()[i] = -1;
+			LOG(ERROR) << match->mutable_cpu_data()[i];
+		}
 		delete []edge;
 		delete []lx;
 		delete []ly;
