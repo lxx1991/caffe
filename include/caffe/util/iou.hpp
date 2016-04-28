@@ -17,11 +17,10 @@ namespace caffe {
 		}
 		y = y - x;
 		CHECK_GE(y, x);
-
 		if (y < 1e-8)
 			return 1;
 		else
-			return x / y;
+			return 1 / (y);
 	}
 
 	template <typename Dtype>
@@ -47,7 +46,10 @@ namespace caffe {
 			b = Dtype(-x) / (y * y);
 		}
 		for (int i=0; i<len; i++)
-			diff[i] = label[i] * a + (Dtype(1) - label[i]) * b;
+			if (label[i] > 0.5)
+				diff[i] = -a;
+			else
+				diff[i] = -b;
 	}
 
 }

@@ -23,19 +23,22 @@ void IouMatchLossLayer<Dtype>::Reshape(
     const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
   
   LossLayer<Dtype>::Reshape(bottom, top);
-  
   CHECK_EQ(bottom[0]->num(), 1);
   CHECK_EQ(bottom[0]->num(), bottom[1]->num());
   CHECK_EQ(bottom[0]->num(), bottom[2]->num());
-
-  n1_ = bottom[0]->channels();
   n2_ = bottom[1]->channels();
   CHECK_EQ(n2_, bottom[2]->channels());
 
-  CHECK_EQ(bottom[0]->height(), bottom[1]->height());
-  CHECK_EQ(bottom[0]->width(), bottom[1]->width());
 
-  way_->Reshape(n1_, n2_, 1, 1);
+  if (bottom[0]->height() == 1)
+    n1_ = 0;
+  else
+  {
+    CHECK_EQ(bottom[0]->height(), bottom[1]->width());
+    CHECK_EQ(bottom[0]->height(), bottom[1]->width());
+    n1_ = bottom[0]->channels();
+    way_->Reshape(n1_, n2_, 1, 1);
+  }
   match_->Reshape(n2_, 1, 1, 1);
 }
 
@@ -55,9 +58,15 @@ void IouMatchLossLayer<Dtype>::Forward_cpu(
     for (int j=0; j<n2_; j++)
       way_->mutable_cpu_data()[way_->offset(i, j)] = iou(label + i * len, predict + j * len, len);
 
-  kuhn_munkres<Dtype>(way_, match_);
-
+  if (n1_ > 0)
+    kuhn_munkres<Dtype>(way_, match_);
+  else
+    for (int i=0; i<n2_; i++)
+      match_->mutable_cpu_data()[i] = -1;
+  //match_->mutable_cpu_data()[0] = 0;
+  //match_->mutable_cpu_data()[1] = -1;
   Dtype loss = 0;
+  //LOG(ERROR) << n1_ <<' '<< score[0] << ' ' << score[1];
   for (int i=0; i<n2_; i++)
     if (match_->cpu_data()[i] >= 0)
       loss -= way_->cpu_data()[way_->offset(match_->cpu_data()[i], i)] + lambda_ * (log(score[i]));
@@ -107,10 +116,9 @@ void IouMatchLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
     for (int i=0; i<n2_; i++)
     {
       if (match_->cpu_data()[i] >= 0)
-        bottom_diff[i] = -1/score[i];
+        bottom_diff[i] = -lambda_ /(score[i] + 1e-8);
       else
-        bottom_diff[i] = -1/(1-score[i]);
-      
+        bottom_diff[i] = lambda_ /(1-score[i] + 1e-8);
       if (clip > Dtype(0))
       {
         if (bottom_diff[i] > clip) bottom_diff[i] = clip;

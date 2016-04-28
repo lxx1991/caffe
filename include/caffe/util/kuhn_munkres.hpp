@@ -89,7 +89,7 @@ namespace caffe {
 				match->mutable_cpu_data()[i] = my[i];
 			else
 				match->mutable_cpu_data()[i] = -1;
-			LOG(ERROR) << match->mutable_cpu_data()[i];
+			//LOG(ERROR) << match->mutable_cpu_data()[i];
 		}
 		delete []edge;
 		delete []lx;
