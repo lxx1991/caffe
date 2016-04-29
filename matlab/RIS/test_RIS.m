@@ -10,15 +10,14 @@ caffe.set_device(use_gpu);
 
 %%
 dir_model = fullfile('..', '..', 'examples', 'RIS');
-file_solver = fullfile(dir_model, 'RIS_solver.prototxt');
-file_weight = fullfile(dir_model, 'init.caffemodel');
+file_net = fullfile(dir_model, 'RIS_test.prototxt');
+file_weight = fullfile(dir_model, 'model','object2_iter_85000.caffemodel');
 
-caffe_solver = caffe.Solver(file_solver);
-caffe_solver.net.copy_from(file_weight);
+net = caffe.Net(file_net, file_weight, 'test');
 
 
 dir_dataset = fullfile('..', '..', 'data', 'VOC_arg_instance');
-train_list = fullfile(dir_dataset, 'train.txt');
+train_list = fullfile(dir_dataset, 'val.txt');
 fid = fopen(train_list);
 name_list=textscan(fid, '%s');
 name_list=name_list{1};
@@ -30,11 +29,9 @@ IMAGE_MEAN = imresize(d.image_mean, [IMAGE_DIM, IMAGE_DIM], 'nearest');
 
 %%
 idx = 1;
-max_iter = caffe_solver.max_iter();
-iter = 0;
 show = 1;
 %%
-while (iter < max_iter)
+while (idx < length(name_list))
 %     name_list{idx} = '2008_001648';
     if (~exist(fullfile(dir_dataset, 'inst', [name_list{idx}, '.mat']), 'file'))
         idx = mod(idx,length(name_list)) + 1;
@@ -66,37 +63,30 @@ while (iter < max_iter)
     % permute x,y axis
     input_img = permute(input_img, [2, 1, 3]);
     input_mask = permute(input_mask, [2, 1, 3]);
-    net_inputs = {input_img, input_mask};
-    caffe_solver.net.set_phase('train');
-    caffe_solver.net.reshape_as_input(net_inputs);
-    caffe_solver.net.set_input_data(net_inputs);
-    caffe_solver.step(1);
-    output = caffe_solver.net.get_output();
-    if (exist('show', 'var') )
-        show = 20;
+    net_inputs = {input_img};
+    net.reshape_as_input(net_inputs);
+    output = net.forward(net_inputs);
+    if (exist('show', 'var') && show == 0)
+        show = 1;
         subplot(221);
         imshow(img);
         subplot(222);
         imagesc(GTinst.Segmentation);
         axis image;
         title(num2str(length(tmp)));
-        score = caffe_solver.net.blobs('score_1').get_data();
-        pro_map = caffe_solver.net.blobs('up_pro_map_1').get_data();
+        score = net.blobs('score').get_data();
+        pro_map = net.blobs('up_pro_map').get_data();
         pro_map = permute(pro_map, [2, 1, 3]);
         subplot(223);
         imagesc(pro_map(st_h+1:st_h+height_img, st_w+1:st_w+width_img, 1));
         axis image;
         title(num2str(score(1)));
-        
-        
-        disp(caffe_solver.net.blobs('linear_1').get_data())
         subplot(224);
         imagesc(pro_map(st_h+1:st_h+height_img, st_w+1:st_w+width_img, 2));  
         axis image;
         title(num2str(score(2)));
         drawnow;
+        pause;
     end;
-    
-    idx = mod(idx,length(name_list)) + 1;
-    iter = iter + 1;
+    idx = idx + 1;
 end;

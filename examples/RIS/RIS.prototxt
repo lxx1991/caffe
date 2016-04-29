@@ -729,8 +729,8 @@ layer {
   top: "score_pool_1"
   pooling_param {
     pool: MAX
-    kernel_size: 2
-    stride: 2
+    kernel_size: 64
+    stride: 1
   }
 }
 layer {
@@ -1191,8 +1191,8 @@ layer {
   top: "score_pool_2"
   pooling_param {
     pool: MAX
-    kernel_size: 2
-    stride: 2
+    kernel_size: 64
+    stride: 1
   }
 }
 layer {

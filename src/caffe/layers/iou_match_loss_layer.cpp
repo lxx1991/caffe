@@ -56,7 +56,9 @@ void IouMatchLossLayer<Dtype>::Forward_cpu(
   
   for (int i=0; i<n1_; i++)
     for (int j=0; j<n2_; j++)
+    {
       way_->mutable_cpu_data()[way_->offset(i, j)] = iou(label + i * len, predict + j * len, len);
+    }
 
   if (n1_ > 0)
     kuhn_munkres<Dtype>(way_, match_);
@@ -69,9 +71,15 @@ void IouMatchLossLayer<Dtype>::Forward_cpu(
   //LOG(ERROR) << n1_ <<' '<< score[0] << ' ' << score[1];
   for (int i=0; i<n2_; i++)
     if (match_->cpu_data()[i] >= 0)
-      loss -= way_->cpu_data()[way_->offset(match_->cpu_data()[i], i)] + lambda_ * (log(score[i]));
+    {
+      loss = loss - way_->cpu_data()[way_->offset(match_->cpu_data()[i], i)] + lambda_ * (-log(score[i]));
+      LOG(ERROR) << - way_->cpu_data()[way_->offset(match_->cpu_data()[i], i)] << ' ' << lambda_ * (-log(score[i]));
+    }
     else
-      loss -= lambda_ * (log(1 - score[i]));
+    {
+      loss = loss + lambda_ * (-log(1 - score[i]));
+      LOG(ERROR) << 0 << ' ' << lambda_ * (-log(1 - score[i]));
+    }
   top[0]->mutable_cpu_data()[0] = loss;
 }
 

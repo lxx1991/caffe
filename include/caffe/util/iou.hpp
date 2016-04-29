@@ -20,7 +20,7 @@ namespace caffe {
 		if (y < 1e-8)
 			return 1;
 		else
-			return 1 / (y);
+			return x / y;
 	}
 
 	template <typename Dtype>
