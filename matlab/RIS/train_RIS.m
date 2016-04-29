@@ -56,13 +56,12 @@ while (iter < max_iter)
     if isempty(tmp) 
         input_mask = zeros(1, 1, 1, 'single');
     else
-        show = show - 1;
         input_mask = zeros(IMAGE_DIM, IMAGE_DIM, length(tmp), 'single');
         for i = 1:length(tmp)
             input_mask(st_h+1:st_h+height_img, st_w+1:st_w+width_img, i) = single(GTinst.Segmentation == tmp(i));
         end;
     end;
-    
+    show = show - 1;
     % permute x,y axis
     input_img = permute(input_img, [2, 1, 3]);
     input_mask = permute(input_mask, [2, 1, 3]);
@@ -72,7 +71,7 @@ while (iter < max_iter)
     caffe_solver.net.set_input_data(net_inputs);
     caffe_solver.step(1);
     output = caffe_solver.net.get_output();
-    if (exist('show', 'var') )
+    if (exist('show', 'var') && show == 0)
         show = 20;
         subplot(221);
         imshow(img);
@@ -87,13 +86,10 @@ while (iter < max_iter)
         imagesc(pro_map(st_h+1:st_h+height_img, st_w+1:st_w+width_img, 1));
         axis image;
         title(num2str(score(1)));
-        
-        
-        disp(caffe_solver.net.blobs('linear_1').get_data())
-        subplot(224);
-        imagesc(pro_map(st_h+1:st_h+height_img, st_w+1:st_w+width_img, 2));  
-        axis image;
-        title(num2str(score(2)));
+%         subplot(224);
+%         imagesc(pro_map(st_h+1:st_h+height_img, st_w+1:st_w+width_img, 2));  
+%         axis image;
+%         title(num2str(score(2)));
         drawnow;
     end;
     

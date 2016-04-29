@@ -1,5 +1,5 @@
 # The train/test net protocol buffer definition
-train_net: "/DATA3/caffe/examples/RIS/RIS.prototxt"
+train_net: "/DATA3/caffe/examples/RIS/RIS_1.prototxt"
 type: "Adam"
 base_lr: 0.001
 momentum: 0.9
@@ -14,6 +14,6 @@ display: 1
 max_iter: 80000
 # snapshot intermediate results
 snapshot: 5000
-snapshot_prefix: "/DATA3/caffe/examples/RIS/model/object2"
+snapshot_prefix: "/DATA3/caffe/examples/RIS/model/object1"
 # solver mode: CPU or GPU
 solver_mode: GPU

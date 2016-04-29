@@ -73,7 +73,7 @@ void IouMatchLossLayer<Dtype>::Forward_cpu(
     if (match_->cpu_data()[i] >= 0)
     {
       loss = loss - way_->cpu_data()[way_->offset(match_->cpu_data()[i], i)] + lambda_ * (-log(score[i]));
-      LOG(ERROR) << - way_->cpu_data()[way_->offset(match_->cpu_data()[i], i)] << ' ' << lambda_ * (-log(score[i]));
+      LOG(ERROR) << - way_->cpu_data()[way_->offset(match_->cpu_data()[i], i)] << ' ' << lambda_ * (-log(score[i])) << " MATCH                " << i;
     }
     else
     {
