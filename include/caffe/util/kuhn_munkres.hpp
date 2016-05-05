@@ -16,7 +16,7 @@ namespace caffe {
 			if (!vy[j])
 			{
 				Dtype t = lx[i] + ly[j] - edge[i*n + j];
-				if (std::abs(t) < 1e-10)
+				if (std::abs(t) < 1e-6)
 				{
 					vy[j] = true;
 					if (my[j] == -1 || find(my[j], n, edge, lx, ly, my, slack, vx, vy))
