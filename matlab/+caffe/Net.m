@@ -68,6 +68,13 @@ classdef Net < handle
       self.layer_names = self.attributes.layer_names;
       self.blob_names = self.attributes.blob_names;
     end
+    function set_phase(self, phase_name)
+      CHECK(ischar(phase_name), 'phase_name must be a string');
+      CHECK(strcmp(phase_name, 'train') || strcmp(phase_name, 'test'), ...
+      sprintf('phase_name can only be %strain%s or %stest%s', ...
+            char(39), char(39), char(39), char(39)));
+      caffe_('net_set_phase', self.hNet_self, phase_name);
+    end
     function layer = layers(self, layer_name)
       CHECK(ischar(layer_name), 'layer_name must be a string');
       layer = self.layer_vec(self.name2layer_index(layer_name));
@@ -86,6 +93,23 @@ classdef Net < handle
     end
     function backward_prefilled(self)
       caffe_('net_backward', self.hNet_self);
+    end
+    function set_input_data(self, input_data)
+      CHECK(iscell(input_data), 'input_data must be a cell array');
+      CHECK(length(input_data) == length(self.inputs), ...
+        'input data cell length must match input blob number');
+      % copy data to input blobs
+      for n = 1:length(self.inputs)
+        self.blobs(self.inputs{n}).set_data(input_data{n});
+      end
+    end
+    function res = get_output(self)
+      % get output blobs
+      res = struct('blob_name', '', 'data', []);
+      for n = 1:length(self.outputs)
+        res(n).blob_name = self.outputs{n};
+        res(n).data = self.blobs(self.outputs{n}).get_data();
+      end
     end
     function res = forward(self, input_data)
       CHECK(iscell(input_data), 'input_data must be a cell array');
@@ -124,6 +148,21 @@ classdef Net < handle
     end
     function reshape(self)
       caffe_('net_reshape', self.hNet_self);
+    end
+    function reshape_as_input(self, input_data)
+      CHECK(iscell(input_data), 'input_data must be a cell array');
+      CHECK(length(input_data) == length(self.inputs), ...
+        'input data cell length must match input blob number');
+      % reshape input blobs
+      for n = 1:length(self.inputs)
+        if isempty(input_data{n})
+          continue;
+        end
+        input_data_size = size(input_data{n});
+        input_data_size_extended = [input_data_size, ones(1, 4 - length(input_data_size))];
+        self.blobs(self.inputs{n}).reshape(input_data_size_extended);
+      end
+      self.reshape();
     end
     function save(self, weights_file)
       CHECK(ischar(weights_file), 'weights_file must be a string');
