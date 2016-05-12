@@ -1,22 +1,23 @@
 name: "DPN"
 
-input: 'data'
-input: 'sp_map'
-input: 'sp_label'
+input: "data"
 input_dim: 1
 input_dim: 3
 input_dim: 512
 input_dim: 512
+
+input: "superpixel"
 input_dim: 1
 input_dim: 1
 input_dim: 512
 input_dim: 512
+
+input: "label"
 input_dim: 1
 input_dim: 1
-input_dim: 10
+input_dim: 300
 input_dim: 1
 
-### NETWORK ###
 
 layer {
   name: "conv1_1"
@@ -441,18 +442,20 @@ layer {
   top: "fc6-conv"
 }
 layer {
-  name: "drop6"
-  type: "Dropout"
+  name: "sp_pooling"
+  type: "SuperpixelPooling"
   bottom: "fc6-conv"
-  top: "fc6-conv"
-  dropout_param {
-    dropout_ratio: 0.5
+  bottom: "superpixel"
+  bottom: "label"
+  top: "sp_pooling"
+  pooling_param {
+    pool: AVE
   }
 }
 layer {
   name: "fc7-conv"
   type: "Convolution"
-  bottom: "fc6-conv"
+  bottom: "sp_pooling"
   top: "fc7-conv"
   param {
     lr_mult: 1
@@ -482,24 +485,76 @@ layer {
     dropout_ratio: 0.5
   }
 }
-
 layer {
-  name: "sp_pooling"
-  type: "SuperpixelPooling"
+  name: "fc8"
+  type: "Convolution"
   bottom: "fc7-conv"
-  bottom: "sp_map"
-  bottom: "sp_label"
-  top: "upfeat"
-  pooling_param {
-    pool: AVE
+  top: "fc8"
+  param {
+    lr_mult: 1
+    decay_mult: 1
   }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 256
+    kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu8"
+  type: "ReLU"
+  bottom: "fc8"
+  top: "fc8"
+}
+layer {
+  name: "fc9_1"
+  type: "Convolution"
+  bottom: "fc8"
+  top: "fc9_1"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 256
+    kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "fc9_1"
+  type: "ReLU"
+  bottom: "fc9_1"
+  top: "fc9_1"
 }
 
 layer {
-  name: "fc8-VOC"
+  name: "fc9_2"
   type: "Convolution"
-  bottom: "upfeat"
-  top: "fc8-VOC"
+  bottom: "fc9_1"
+  top: "score"
   param {
     lr_mult: 1
     decay_mult: 1
@@ -522,4 +577,13 @@ layer {
   }
 }
 
-
+layer {
+  name: "loss"
+  type: "SoftmaxWithLoss"
+  bottom: "score"
+  bottom: "label"
+  top: "loss"
+  loss_param {
+    ignore_label: 255
+  }
+}

@@ -20,7 +20,7 @@ file_img_mean = './vgg16_mean.mat';
 
 dir_model = '/DATA3/caffe/matlab/SP_classification/superpixel_pooling_test/';
 file_model = [dir_model, 'init.caffemodel'];
-file_def_model = [dir_model, 'test.prototxt'];
+file_def_model = [dir_model, 'DPN_Coco_test.prototxt'];
 
 results_name = 'test';
 dir_results = ['/DATA3/caffe_DPN/data/results/', data_set, '/Segmentation/', results_name, '_', list_name, '_cls/']; mkdir(dir_results);
@@ -58,7 +58,6 @@ for id_img = 1:num_img
     I =  vl_rgb2xyz(im);  
     I_single = single(I);  
     sp = vl_slic(I_single, 20, 0.1);
-    
     height_img = size(im, 1);
     width_img = size(im, 2);
 
@@ -98,7 +97,7 @@ for id_img = 1:num_img
     [~, maxlabel] = max(scores, [], 3);
     maxlabel = uint8(maxlabel - 1);
     sp = maxlabel(sp+1);
-    imagesc(sp);
+    imshow(sp, cmap);
     pause;
     disp(['Processing Img ', num2str(id_img), '...']);
 end

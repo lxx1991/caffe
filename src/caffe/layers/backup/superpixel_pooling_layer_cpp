@@ -20,7 +20,7 @@ void SuperpixelPoolingLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
 	CHECK_EQ(bottom[0]->num(), 1);
 	CHECK_EQ(bottom[1]->num(), 1);
-	CHECK_EQ(bottom[2]->num(), 1);
+	
 	CHECK_EQ(bottom[1]->channels(), 1);
 	CHECK_EQ(bottom[2]->channels(), 1);
 	
@@ -28,8 +28,9 @@ void SuperpixelPoolingLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
   factor_ = bottom[1]->height() / bottom[0]->height(); 
 
   CHECK_EQ(bottom[0]->height() * factor_, bottom[1]->height());
+  CHECK_EQ(bottom[2]->height(), 1);
 	CHECK_EQ(bottom[2]->width(), 1);
-	superpixel_num_ = bottom[2]->height();
+	superpixel_num_ = bottom[2]->num();
 
   if (superpixel_num_ > head_.count())
     head_.Reshape(superpixel_num_, 1, 1, 1);
@@ -50,7 +51,7 @@ void SuperpixelPoolingLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
     weight_bp_.Reshape(kernel_size * bottom[0]->height()*bottom[0]->width(), 1, 1, 1);
   }
 
-	top[0]->Reshape(1, bottom[0]->channels(), superpixel_num_, 1);
+	top[0]->Reshape(superpixel_num_, bottom[0]->channels(), 1, 1);
 	/*if (this->layer_param_.pooling_param().pool() == PoolingParameter_PoolMethod_MAX || this->layer_param_.pooling_param().pool() == PoolingParameter_PoolMethod_AVE)
 	{
 		max_idx_.Reshape(1, bottom[0]->channels(), superpixel_num_, 1);

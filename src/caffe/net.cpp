@@ -4,6 +4,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <time.h>
 
 #include "hdf5.h"
 
@@ -547,8 +548,15 @@ Dtype Net<Dtype>::ForwardFromTo(int start, int end) {
   CHECK_LT(end, layers_.size());
   Dtype loss = 0;
   for (int i = start; i <= end; ++i) {
-    // LOG(ERROR) << "Forwarding " << layer_names_[i];
+    //LOG(ERROR) << "Forwarding " << layer_names_[i];
+    //clock_t start, finish;
+    //start = clock();
+
     Dtype layer_loss = layers_[i]->Forward(bottom_vecs_[i], top_vecs_[i]);
+
+    //finish = clock();
+    //LOG(ERROR) << "Forwarding " << layer_names_[i] << ' ' << double(finish - start) / CLOCKS_PER_SEC;
+
     loss += layer_loss;
     if (debug_info_) { ForwardDebugInfo(i); }
   }
@@ -593,8 +601,15 @@ void Net<Dtype>::BackwardFromTo(int start, int end) {
   CHECK_LT(start, layers_.size());
   for (int i = start; i >= end; --i) {
     if (layer_need_backward_[i]) {
+      //clock_t start, finish;
+      //start = clock();
+
       layers_[i]->Backward(
           top_vecs_[i], bottom_need_backward_[i], bottom_vecs_[i]);
+
+      //finish = clock();
+      //LOG(ERROR) << "Backwarding " << layer_names_[i] << ' ' << double(finish - start) / CLOCKS_PER_SEC;
+
       if (debug_info_) { BackwardDebugInfo(i); }
     }
   }

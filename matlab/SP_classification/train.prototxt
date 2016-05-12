@@ -482,23 +482,44 @@ layer {
     dropout_ratio: 0.5
   }
 }
+layer {
+  name: "upfeat"
+  type: "Deconvolution"
+  bottom: "fc7-conv"
+  top: "upfeat"
+  param {
+    lr_mult: 0
+  }
+  convolution_param {
+    num_output: 4096
+    group: 4096
+    bias_term: false
+    pad: 4
+    kernel_size: 16
+    stride: 8
+    weight_filler {
+      type: "bilinear"
+    }
+  }
+}
 
 layer {
   name: "sp_pooling"
   type: "SuperpixelPooling"
-  bottom: "fc7-conv"
+  bottom: "upfeat"
   bottom: "sp_map"
   bottom: "sp_label"
-  top: "upfeat"
+  top: "sp_pooling"
   pooling_param {
-    pool: AVE
+    pool: MAX
+    stride: 8
   }
 }
 
 layer {
   name: "fc8-VOC"
   type: "Convolution"
-  bottom: "upfeat"
+  bottom: "sp_pooling"
   top: "fc8-VOC"
   param {
     lr_mult: 1
@@ -521,5 +542,3 @@ layer {
     }
   }
 }
-
-

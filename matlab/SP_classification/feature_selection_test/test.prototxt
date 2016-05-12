@@ -1,0 +1,96 @@
+input: 'feat'
+input_dim: 1
+input_dim: 256
+input_dim: 500
+input_dim: 1
+
+input: 'id'
+input_dim: 1
+input_dim: 1
+input_dim: 4000
+input_dim: 3
+
+input: 'label'
+input_dim: 4000
+input_dim: 256
+input_dim: 1
+input_dim: 3
+
+### NETWORK ###
+
+
+layer {
+  name: "conv1"
+  type: "Convolution"
+  bottom: "feat"
+  top: "conv1_1"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 256
+    kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+layer {
+  type: "ReLU" 
+  bottom: "conv1_1"
+  top: "conv1_1"
+}
+
+layer {
+  name: "conv2"
+  type: "Convolution"
+  bottom: "conv1_1"
+  top: "conv2"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 256
+    kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+layer {
+  name: "feat_s"
+  type: "FeatureSelection"
+  bottom: "conv2"
+  bottom: "id"
+  top: "feat_s"
+}
+
+layer{
+	name: "loss"
+	type: "EuclideanLoss"
+	bottom: "label"
+	bottom: "feat_s"
+	top: "loss"
+}

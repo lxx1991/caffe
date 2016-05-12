@@ -306,7 +306,7 @@ message ParamSpec {
 // NOTE
 // Update the next available ID when you add a new LayerParameter field.
 //
-// LayerParameter next available layer-specific ID: 145 (last added: crop_param)
+// LayerParameter next available layer-specific ID: 146 (last added: triplet_loss_param)
 message LayerParameter {
   optional string name = 1; // the layer name
   optional string type = 2; // the layer type
@@ -400,6 +400,7 @@ message LayerParameter {
   optional TanHParameter tanh_param = 127;
   optional ThresholdParameter threshold_param = 128;
   optional TileParameter tile_param = 138;
+  optional TripletLossParameter triplet_loss_param = 145;
   optional WindowDataParameter window_data_param = 129;
 }
 
@@ -1127,6 +1128,11 @@ message ThresholdParameter {
   optional float threshold = 1 [default = 0]; // Strictly positive values
 }
 
+message TripletLossParameter {
+  // margin for dissimilar pair  
+  optional float margin = 1 [default = 1.0];   
+}
+
 message WindowDataParameter {
   // Specify the data source.
   optional string source = 1;
@@ -1199,6 +1205,7 @@ message V1LayerParameter {
     EUCLIDEAN_LOSS = 7;
     ELTWISE = 25;
     EXP = 38;
+    FEATURE_SELECTION = 41;
     FLATTEN = 8;
     HDF5_DATA = 9;
     HDF5_OUTPUT = 10;
@@ -1223,6 +1230,7 @@ message V1LayerParameter {
     SLICE = 33;
     SUPERPIXEL_POOLING = 40;
     TANH = 23;
+    TRIPLET_LOSS = 42;
     WINDOW_DATA = 24;
     THRESHOLD = 31;
   }

@@ -31,15 +31,17 @@ class SuperpixelPoolingLayer : public Layer<Dtype> {
  protected:
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
-// virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-//      const vector<Blob<Dtype>*>& top);
+ virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
+      const vector<Blob<Dtype>*>& top);
   virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
-//  virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
-//      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+  virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
+     const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 
   Blob<int> max_idx_;
-  int superpixel_num_;
+  Blob<int> head_, prev_, ending_, head_bp_, prev_bp_, ending_bp_;
+  Blob<Dtype> weight_, weight_bp_;
+  int superpixel_num_, factor_;
 };
 
 }  // namespace caffe
