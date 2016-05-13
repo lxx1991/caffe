@@ -6,7 +6,6 @@ input_dim: 3
 input_dim: 512
 input_dim: 512
 
-
 layer {
   name: "conv1_1"
   type: "Convolution"
@@ -485,7 +484,7 @@ layer {
     decay_mult: 0
   }
   convolution_param {
-    num_output: 1
+    num_output: 2
     kernel_size: 1
     weight_filler {
       type: "gaussian"
@@ -503,10 +502,12 @@ layer {
   bottom: "fc8-conv"
   top: "upscore"
   param {
-    lr_mult: 1
+    lr_mult: 0
+    decay_mult: 0
   }
   convolution_param {
-    num_output: 1
+    num_output: 2
+    group: 2
     bias_term: false
     pad: 4
     kernel_size: 16
