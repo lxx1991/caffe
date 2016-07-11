@@ -17,6 +17,13 @@ namespace caffe {
 template <typename Dtype>
 void TripletLossLayer<Dtype>::Forward_gpu(
     const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+  /*
+  if (bottom[0]->num() == 1)
+  {
+    top[0]->mutable_cpu_data()[0] = Dtype(0);
+    return;
+  }*/
+
   const int count = bottom[0]->count();
   caffe_gpu_sub(
       count,
@@ -93,6 +100,15 @@ __global__ void CLLBackward(const int count, const int channels,
 template <typename Dtype>
 void TripletLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+/*
+  if (bottom[0]->num() == 1)
+  {
+    for (int i=0; i<3; i++)
+      caffe_gpu_set(bottom[i]->count(), Dtype(0.), bottom[i]->mutable_gpu_diff());
+    return;
+  }
+*/
+
   Dtype margin = this->layer_param_.triplet_loss_param().margin();
   const int count = bottom[0]->count();
   const int channels = bottom[0]->channels();

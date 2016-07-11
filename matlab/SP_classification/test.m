@@ -11,15 +11,13 @@ caffe.set_device(use_gpu);
 
 %%
 dir_model = fullfile('..', '..', 'examples', 'SP_classification');
-file_solver = fullfile(dir_model, 'SP_classification_solver.prototxt');
-file_weight = fullfile(dir_model, 'VGG_ILSVRC_16_layers_conv.caffemodel');
+file_model = fullfile(dir_model, 'SP_test.prototxt');
+file_weight = fullfile(dir_model, 'model', 'unary_iter_6000.caffemodel');
 
-caffe_solver = caffe.Solver(file_solver);
-caffe_solver.net.copy_from(file_weight);
-
+net = caffe.Net(file_model, file_weight, 'test');
 
 dir_dataset = fullfile('..', '..', 'data', 'VOC_arg_instance');
-train_list = fullfile(dir_dataset, 'train.txt');
+train_list = fullfile(dir_dataset, 'val.txt');
 fid = fopen(train_list);
 name_list=textscan(fid, '%s');
 name_list=name_list{1};
@@ -30,12 +28,12 @@ d = load('vgg16_mean');
 cmap = VOClabelcolormap();
 IMAGE_MEAN = imresize(d.image_mean, [IMAGE_DIM, IMAGE_DIM], 'nearest');
 
-idx = 1; show = 10;
+idx = 1; show = 1;
 %%
-while (caffe_solver.iter() < caffe_solver.max_iter())
+while (idx <= length(name_list))
     
     if (~exist(fullfile(dir_dataset, 'cls', [name_list{idx}, '.mat']), 'file'))
-        idx = mod(idx,length(name_list)) + 1;
+        idx = idx + 1;
         continue;
     end;
     
@@ -60,6 +58,7 @@ while (caffe_solver.iter() < caffe_solver.max_iter())
     
     sp_label = zeros(sp_num, 1, 1);
     
+    
     for i = 0 : sp_num - 1
         sp_labels = input_label(input_sp == i);
         [sp_label(i+1), feq]= mode(sp_labels);
@@ -69,30 +68,30 @@ while (caffe_solver.iter() < caffe_solver.max_iter())
         end;
     end;
     
+
     input_img = permute(single(input_img), [2, 1, 3]);
     input_sp = permute(single(input_sp), [2, 1, 3]);
     sp_label = permute(single(sp_label), [2, 1, 3]);
     net_inputs = {input_img, input_sp, sp_label};
-    caffe_solver.net.set_phase('train');
-    caffe_solver.net.reshape_as_input(net_inputs);
-    caffe_solver.net.set_input_data(net_inputs);
+    net.reshape_as_input(net_inputs);
     tic;
-    caffe_solver.step_sample();
+    output = net.forward(net_inputs);
     toc;
-    if (exist('show', 'var') && mod(caffe_solver.iter(), show) == 0)
-        subplot(221);
-        imshow(img);
-        subplot(222);
-        imshow(GTcls.Segmentation, cmap);
-        score = caffe_solver.net.blobs('score').get_data();
-        [~, score] = max(permute(score, [2, 1, 3]), [], 3);
-        subplot(223);
-        result = zeros(size(sp), 'uint8');
-        for i = 0 : sp_num - 1
-            result(sp == i) = score(i + 1) - 1;
-        end;
-        imshow(result, cmap);
-        drawnow;
+
+    subplot(221);
+    imshow(img);
+    subplot(222);
+    imshow(GTcls.Segmentation, cmap);
+    score = net.blobs('score').get_data();
+    [~, score] = max(permute(score, [2, 1, 3]), [], 3);
+    subplot(223);
+    result = zeros(size(sp), 'uint8');
+    for i = 0 : sp_num - 1
+        result(sp == i) = score(i + 1) - 1;
     end;
-    idx = mod(idx,length(name_list)) + 1;
+    imshow(result, cmap);
+    drawnow;
+    pause;
+
+    idx = idx + 1;
 end;

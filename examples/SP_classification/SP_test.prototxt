@@ -576,14 +576,3 @@ layer {
     }
   }
 }
-
-layer {
-  name: "loss"
-  type: "SoftmaxWithLoss"
-  bottom: "score"
-  bottom: "label"
-  top: "loss"
-  loss_param {
-    ignore_label: 255
-  }
-}

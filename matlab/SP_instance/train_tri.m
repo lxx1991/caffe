@@ -7,12 +7,11 @@ caffe.reset_all();
 use_gpu = 0;
 caffe.set_mode_gpu();
 caffe.set_device(use_gpu);
-%  caffe.set_mode_cpu();
 
 %%
-dir_model = fullfile('..', '..', 'examples', 'SP_classification');
-file_solver = fullfile(dir_model, 'SP_classification_solver.prototxt');
-file_weight = fullfile(dir_model, 'VGG_ILSVRC_16_layers_conv.caffemodel');
+dir_model = fullfile('..', '..', 'examples', 'SP_instance');
+file_solver = fullfile(dir_model, 'SP_instance_tri_solver.prototxt');
+file_weight = fullfile(dir_model, 'unary_iter_9000.caffemodel');
 
 caffe_solver = caffe.Solver(file_solver);
 caffe_solver.net.copy_from(file_weight);
@@ -30,15 +29,18 @@ d = load('vgg16_mean');
 cmap = VOClabelcolormap();
 IMAGE_MEAN = imresize(d.image_mean, [IMAGE_DIM, IMAGE_DIM], 'nearest');
 
-idx = 1; show = 10;
+idx = 1; show = 10; step = 3;
 %%
 while (caffe_solver.iter() < caffe_solver.max_iter())
+    
+    tic;
     
     if (~exist(fullfile(dir_dataset, 'cls', [name_list{idx}, '.mat']), 'file'))
         idx = mod(idx,length(name_list)) + 1;
         continue;
     end;
     
+    load(fullfile(dir_dataset, 'inst', name_list{idx}));
     load(fullfile(dir_dataset, 'cls', name_list{idx}));
     img = imread(fullfile(dir_dataset, 'img', [name_list{idx}, '.jpg']));
     sp = imread(fullfile(dir_dataset, 'superpixel_20_0.1', [name_list{idx}, '.png']));
@@ -53,30 +55,28 @@ while (caffe_solver.iter() < caffe_solver.max_iter())
     input_img = imresize(img, [new_height_img, new_width_img]);
     input_sp = imresize(sp, [new_height_img, new_width_img], 'nearest');
     input_label = imresize(GTcls.Segmentation, [new_height_img, new_width_img], 'nearest');
-
+    input_instance = imresize(GTinst.Segmentation, [new_height_img, new_width_img], 'nearest');
+   
     input_img = single(input_img(:, :, [3, 2, 1])) - IMAGE_MEAN(1:new_height_img, 1:new_width_img, :);
     
-    sp_num = max(sp(:)) + 1;
+    [sp_edge, sp_label, sp_instance] = sp_graph_tri(double(input_sp), step, double(input_label), double(input_instance));
     
-    sp_label = zeros(sp_num, 1, 1);
-    
-    for i = 0 : sp_num - 1
-        sp_labels = input_label(input_sp == i);
-        [sp_label(i+1), feq]= mode(sp_labels);
-        %ignore label
-        if feq <= length(sp_labels) / 2
-            sp_label(i+1) = 255;
-        end;
+    if isempty(sp_edge)
+        idx = mod(idx,length(name_list)) + 1;
+        continue;
     end;
     
     input_img = permute(single(input_img), [2, 1, 3]);
     input_sp = permute(single(input_sp), [2, 1, 3]);
+    label = permute(single(input_label), [2, 1, 3]);
     sp_label = permute(single(sp_label), [2, 1, 3]);
-    net_inputs = {input_img, input_sp, sp_label};
+    sp_edge = permute(single(sp_edge), [2, 1, 3]);
+    
+    
+    net_inputs = {input_img, input_sp, label, sp_label, sp_edge};
     caffe_solver.net.set_phase('train');
     caffe_solver.net.reshape_as_input(net_inputs);
     caffe_solver.net.set_input_data(net_inputs);
-    tic;
     caffe_solver.step_sample();
     toc;
     if (exist('show', 'var') && mod(caffe_solver.iter(), show) == 0)
@@ -84,14 +84,19 @@ while (caffe_solver.iter() < caffe_solver.max_iter())
         imshow(img);
         subplot(222);
         imshow(GTcls.Segmentation, cmap);
-        score = caffe_solver.net.blobs('score').get_data();
+        score = caffe_solver.net.blobs('upscore').get_data();
         [~, score] = max(permute(score, [2, 1, 3]), [], 3);
         subplot(223);
-        result = zeros(size(sp), 'uint8');
-        for i = 0 : sp_num - 1
-            result(sp == i) = score(i + 1) - 1;
+        imshow(score, cmap);
+        subplot(224);
+        if (size(sp_edge, 2)~=1)
+            feat_a = caffe_solver.net.blobs('feat_a').get_data();
+            feat_n = caffe_solver.net.blobs('feat_n').get_data();
+            feat_p = caffe_solver.net.blobs('feat_p').get_data();
+            d0 = sum((feat_a - feat_n).^2, 3);
+            d1 = sum((feat_a - feat_p).^2, 3);
+            hist(d0(:) - d1(:), -1:0.1:3);
         end;
-        imshow(result, cmap);
         drawnow;
     end;
     idx = mod(idx,length(name_list)) + 1;

@@ -1,23 +1,22 @@
 name: "DPN"
 
-input: "data"
+input: 'data'
+input: 'sp_map'
+input: 'sp_label'
 input_dim: 1
 input_dim: 3
 input_dim: 512
 input_dim: 512
-
-input: "superpixel"
 input_dim: 1
 input_dim: 1
 input_dim: 512
 input_dim: 512
-
-input: "label"
 input_dim: 1
 input_dim: 1
-input_dim: 300
+input_dim: 10
 input_dim: 1
 
+### NETWORK ###
 
 layer {
   name: "conv1_1"
@@ -442,20 +441,18 @@ layer {
   top: "fc6-conv"
 }
 layer {
-  name: "sp_pooling"
-  type: "SuperpixelPooling"
+  name: "drop6"
+  type: "Dropout"
   bottom: "fc6-conv"
-  bottom: "superpixel"
-  bottom: "label"
-  top: "sp_pooling"
-  pooling_param {
-    pool: AVE
+  top: "fc6-conv"
+  dropout_param {
+    dropout_ratio: 0.5
   }
 }
 layer {
   name: "fc7-conv"
   type: "Convolution"
-  bottom: "sp_pooling"
+  bottom: "fc6-conv"
   top: "fc7-conv"
   param {
     lr_mult: 1
@@ -486,75 +483,44 @@ layer {
   }
 }
 layer {
-  name: "fc8"
-  type: "Convolution"
+  name: "upfeat"
+  type: "Deconvolution"
   bottom: "fc7-conv"
-  top: "fc8"
+  top: "upfeat"
   param {
-    lr_mult: 1
-    decay_mult: 1
-  }
-  param {
-    lr_mult: 2
-    decay_mult: 0
+    lr_mult: 0
   }
   convolution_param {
-    num_output: 256
-    kernel_size: 1
+    num_output: 4096
+    group: 4096
+    bias_term: false
+    pad: 4
+    kernel_size: 16
+    stride: 8
     weight_filler {
-      type: "gaussian"
-      std: 0.01
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
+      type: "bilinear"
     }
   }
-}
-layer {
-  name: "relu8"
-  type: "ReLU"
-  bottom: "fc8"
-  top: "fc8"
-}
-layer {
-  name: "fc9_1"
-  type: "Convolution"
-  bottom: "fc8"
-  top: "fc9_1"
-  param {
-    lr_mult: 1
-    decay_mult: 1
-  }
-  param {
-    lr_mult: 2
-    decay_mult: 0
-  }
-  convolution_param {
-    num_output: 256
-    kernel_size: 1
-    weight_filler {
-      type: "gaussian"
-      std: 0.01
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
-  }
-}
-layer {
-  name: "relu9"
-  type: "ReLU"
-  bottom: "fc9_1"
-  top: "fc9_1"
 }
 
 layer {
-  name: "fc9_2"
+  name: "sp_pooling"
+  type: "SuperpixelPooling"
+  bottom: "upfeat"
+  bottom: "sp_map"
+  bottom: "sp_label"
+  top: "sp_pooling"
+  pooling_param {
+    pool: MAX
+    stride: 8
+  }
+}
+
+layer {
+  name: "fc8-VOC"
   type: "Convolution"
-  bottom: "fc9_1"
-  top: "score"
+  bottom: "sp_pooling"
+  top: "fc8-VOC"
   param {
     lr_mult: 1
     decay_mult: 1
@@ -574,16 +540,5 @@ layer {
       type: "constant"
       value: 0
     }
-  }
-}
-
-layer {
-  name: "loss"
-  type: "SoftmaxWithLoss"
-  bottom: "score"
-  bottom: "label"
-  top: "loss"
-  loss_param {
-    ignore_label: 255
   }
 }

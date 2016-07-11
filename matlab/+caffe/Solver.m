@@ -55,5 +55,8 @@ classdef Solver < handle
       iters = double(iters);
       caffe_('solver_step', self.hSolver_self, iters);
     end
+    function step_sample(self)
+      caffe_('solver_step_sample', self.hSolver_self);
+    end
   end
 end
