@@ -23,3 +23,12 @@ snapshot: 5000
 snapshot_prefix: "examples/mnist/lenet"
 # solver mode: CPU or GPU
 solver_mode: GPU
+
+
+# pavi config
+pavi_log: true
+pavi_server_host: "pavi.parrotsdnn.org"
+pavi_username: "xxli___"
+pavi_password: "123456"
+session: "lenet_solver"
+workdir: "examples/mnist/"

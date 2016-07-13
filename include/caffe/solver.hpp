@@ -1,6 +1,9 @@
 #ifndef CAFFE_SOLVER_HPP_
 #define CAFFE_SOLVER_HPP_
 #include <boost/function.hpp>
+#include <boost/asio.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <string>
 #include <vector>
 
