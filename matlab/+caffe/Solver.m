@@ -39,6 +39,9 @@ classdef Solver < handle
     function iter = iter(self)
       iter = caffe_('solver_get_iter', self.hSolver_self);
     end
+    function max_iter = max_iter(self)
+      max_iter = caffe_('solver_get_max_iter', self.hSolver_self);
+    end
     function restore(self, snapshot_filename)
       CHECK(ischar(snapshot_filename), 'snapshot_filename must be a string');
       CHECK_FILE_EXIST(snapshot_filename);
@@ -51,6 +54,9 @@ classdef Solver < handle
       CHECK(isscalar(iters) && iters > 0, 'iters must be positive integer');
       iters = double(iters);
       caffe_('solver_step', self.hSolver_self, iters);
+    end
+    function step_sample(self)
+      caffe_('solver_step_sample', self.hSolver_self);
     end
   end
 end

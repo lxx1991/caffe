@@ -68,6 +68,7 @@ void Solver<Dtype>::Init(const SolverParameter& param) {
   LOG(INFO) << "Pavi init done.";
   iter_ = 0;
   current_step_ = 0;
+  sample_iter_ = 0;
 }
 
 template <typename Dtype>
@@ -284,6 +285,106 @@ void Solver<Dtype>::Step(int iters) {
       requested_early_exit_ = true;
       // Break out of training loop.
       break;
+    }
+  }
+}
+
+template <typename Dtype>
+void Solver<Dtype>::StepSample() {
+
+  int average_loss = this->param_.average_loss();
+  static Dtype loss = 0;
+
+  if (iter_ == 0 && sample_iter_ == 0)
+  {
+    losses_.clear();
+    smoothed_loss_ = 0;
+  }
+  if (sample_iter_ == 0)
+  {
+    // zero-init the params
+    net_->ClearParamDiffs();
+    if (param_.test_interval() && iter_ % param_.test_interval() == 0
+        && (iter_ > 0 || param_.test_initialization())
+        && Caffe::root_solver()) {
+      TestAll();
+      if (requested_early_exit_) {
+        // Break out of the while loop because stop was requested while testing.
+        return;
+      }
+    }
+
+    for (int i = 0; i < callbacks_.size(); ++i) {
+      callbacks_[i]->on_start();
+    }
+    const bool display = param_.display() && iter_ % param_.display() == 0;
+    net_->set_debug_info(display && param_.debug_info());
+    // accumulate the loss and gradient
+    loss = 0;
+  }
+  
+  loss += net_->ForwardBackward();
+  sample_iter_++;
+
+  if (sample_iter_ == param_.iter_size())
+  {
+    loss /= param_.iter_size();
+    // average the loss across iterations for smoothed reporting
+    UpdateSmoothedLoss(loss, iter_, average_loss);
+    const bool display = param_.display() && iter_ % param_.display() == 0;
+    if (display) {
+      LOG_IF(INFO, Caffe::root_solver()) << "Iteration " << iter_
+          << ", loss = " << smoothed_loss_;
+
+      if (param_.pavi_log())
+        pavi_send_log("", "Smoothed loss", (float)smoothed_loss_, "Train", iter_);
+
+      const vector<Blob<Dtype>*>& result = net_->output_blobs();
+      int score_index = 0;
+      for (int j = 0; j < result.size(); ++j) {
+        const Dtype* result_vec = result[j]->cpu_data();
+        const string& output_name =
+            net_->blob_names()[net_->output_blob_indices()[j]];
+        const Dtype loss_weight =
+            net_->blob_loss_weights()[net_->output_blob_indices()[j]];
+        for (int k = 0; k < result[j]->count(); ++k) {
+          ostringstream loss_msg_stream;
+          if (loss_weight) {
+            loss_msg_stream << " (* " << loss_weight
+                            << " = " << loss_weight * result_vec[k] << " loss)";
+          }
+          LOG_IF(INFO, Caffe::root_solver()) << "    Train net output #"
+              << score_index++ << ": " << output_name << " = "
+              << result_vec[k] << loss_msg_stream.str();
+
+          if (param_.pavi_log())
+            pavi_send_log("", output_name, (float)result_vec[k], "Train", iter_);
+
+        }
+      }
+    }
+    for (int i = 0; i < callbacks_.size(); ++i) {
+      callbacks_[i]->on_gradients_ready();
+    }
+    ApplyUpdate();
+
+    // Increment the internal iter_ counter -- its value should always indicate
+    // the number of times the weights have been updated.
+    ++iter_;
+
+    SolverAction::Enum request = GetRequestedAction();
+
+    // Save a snapshot if needed.
+    if ((param_.snapshot()
+         && iter_ % param_.snapshot() == 0
+         && Caffe::root_solver()) ||
+         (request == SolverAction::SNAPSHOT)) {
+      Snapshot();
+    }
+    if (SolverAction::STOP == request) {
+      requested_early_exit_ = true;
+      // Break out of training loop.
+      return;
     }
   }
 }

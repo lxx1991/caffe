@@ -2389,6 +2389,3 @@ I0713 19:52:21.572191  6493 sgd_solver.cpp:106] Iteration 1400, lr = 0.001
 I0713 19:53:09.080936  6493 solver.cpp:235] Iteration 1410, loss = 0.646247
 I0713 19:53:09.081390  6493 solver.cpp:255]     Train net output #0: loss = 0.646247 (* 1 = 0.646247 loss)
 I0713 19:53:09.081634  6493 sgd_solver.cpp:106] Iteration 1410, lr = 0.001
-I0713 19:53:56.628077  6493 solver.cpp:235] Iteration 1420, loss = 0.856689
-I0713 19:53:56.628617  6493 solver.cpp:255]     Train net output #0: loss = 0.856689 (* 1 = 0.856689 loss)
-I0713 19:53:56.628880  6493 sgd_solver.cpp:106] Iteration 1420, lr = 0.001

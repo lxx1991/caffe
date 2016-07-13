@@ -221,6 +221,14 @@ static void solver_get_iter(MEX_ARGS) {
   plhs[0] = mxCreateDoubleScalar(solver->iter());
 }
 
+// Usage: caffe_('solver_get_max_iter', hSolver)
+static void solver_get_max_iter(MEX_ARGS) {
+  mxCHECK(nrhs == 1 && mxIsStruct(prhs[0]),
+    "Usage: caffe_('solver_get_max_iter', hSolver)");
+  Solver<float>* solver = handle_to_ptr<Solver<float> >(prhs[0]);
+  plhs[0] = mxCreateDoubleScalar(solver->max_iter());
+}
+
 // Usage: caffe_('solver_restore', hSolver, snapshot_file)
 static void solver_restore(MEX_ARGS) {
   mxCHECK(nrhs == 2 && mxIsStruct(prhs[0]) && mxIsChar(prhs[1]),
@@ -249,6 +257,14 @@ static void solver_step(MEX_ARGS) {
   solver->Step(iters);
 }
 
+// Usage: caffe_('solver_step_sample', hSolver, iters)
+static void solver_step_sample(MEX_ARGS) {
+  mxCHECK(nrhs == 1 && mxIsStruct(prhs[0]),
+      "Usage: caffe_('solver_step', hSolver)");
+  Solver<float>* solver = handle_to_ptr<Solver<float> >(prhs[0]);
+  solver->StepSample();
+}
+
 // Usage: caffe_('get_net', model_file, phase_name)
 static void get_net(MEX_ARGS) {
   mxCHECK(nrhs == 2 && mxIsChar(prhs[0]) && mxIsChar(prhs[1]),
@@ -268,6 +284,26 @@ static void get_net(MEX_ARGS) {
   nets_.push_back(net);
   plhs[0] = ptr_to_handle<Net<float> >(net.get());
   mxFree(model_file);
+  mxFree(phase_name);
+}
+
+// Usage: caffe_('net_set_phase', hNet, phase_name)
+static void net_set_phase(MEX_ARGS) {
+  mxCHECK(nrhs == 2 && mxIsStruct(prhs[0]) && mxIsChar(prhs[1]),
+    "Usage: caffe_('net_set_phase', hNet, phase_name)");
+  Net<float>* net = handle_to_ptr<Net<float> >(prhs[0]);
+  char* phase_name = mxArrayToString(prhs[1]);
+  Phase phase;
+  if (strcmp(phase_name, "train") == 0) {
+    phase = TRAIN;
+  }
+  else if (strcmp(phase_name, "test") == 0) {
+    phase = TEST;
+  }
+  else {
+    mxERROR("Unknown phase");
+  }
+  net->SetPhase(phase);
   mxFree(phase_name);
 }
 
@@ -524,11 +560,14 @@ static handler_registry handlers[] = {
   { "get_solver",         get_solver      },
   { "solver_get_attr",    solver_get_attr },
   { "solver_get_iter",    solver_get_iter },
+  { "solver_get_max_iter",solver_get_max_iter},
   { "solver_restore",     solver_restore  },
   { "solver_solve",       solver_solve    },
   { "solver_step",        solver_step     },
+  { "solver_step_sample", solver_step_sample},
   { "get_net",            get_net         },
   { "net_get_attr",       net_get_attr    },
+  { "net_set_phase",      net_set_phase   },
   { "net_forward",        net_forward     },
   { "net_backward",       net_backward    },
   { "net_copy_from",      net_copy_from   },
