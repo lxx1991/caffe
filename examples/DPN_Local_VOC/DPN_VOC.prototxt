@@ -1,16 +1,10 @@
-name: "DPN_Local_VOC"
+name: "DPN_VOC"
 
 input: "data"
 input_dim: 1
 input_dim: 3
 input_dim: 512
 input_dim: 512
-
-input: "edge_map"
-input_dim: 1
-input_dim: 25
-input_dim: 64
-input_dim: 64
 
 input: "label"
 input_dim: 1
@@ -483,124 +477,10 @@ layer {
     dropout_ratio: 0.5
   }
 }
-
-## DSN conv 1 ###
-layer { name: "dsn1_1" type: "Convolution" bottom: "conv1_2" top: "dsn1_1"
-  param { lr_mult: 1 decay_mult: 1 } param { lr_mult: 2 decay_mult: 0}
-  convolution_param {num_output: 64 kernel_size: 3 pad: 1 stride: 2 weight_filler {type: "gaussian" std: 0.01}} }
-layer {
-  name: "relu_dsn1_1"
-  type: "ReLU"
-  bottom: "dsn1_1"
-  top: "dsn1_1"
-}
-layer { name: "dsn1_2" type: "Convolution" bottom: "dsn1_1" top: "dsn1_2"
-  param { lr_mult: 1 decay_mult: 1 } param { lr_mult: 2 decay_mult: 0}
-  convolution_param {num_output: 64 kernel_size: 3 pad: 1 stride: 2 weight_filler {type: "gaussian" std: 0.01}} }
-layer {
-  name: "relu_dsn1_2"
-  type: "ReLU"
-  bottom: "dsn1_2"
-  top: "dsn1_2"
-}
-layer {
-  name: "pool_dsn_1"
-  type: "Pooling"
-  bottom: "dsn1_2"
-  top: "pool_dsn_1"
-  pooling_param {
-    pool: MAX
-    kernel_size: 2
-    stride: 2
-  }
-}
-layer { name: "score-dsn1" type: "Convolution" bottom: "pool_dsn_1" top: "score-dsn1"
-  param { lr_mult: 1 decay_mult: 1 } param { lr_mult: 2 decay_mult: 0}
-  convolution_param {num_output: 25 kernel_size: 1 weight_filler {type: "gaussian" std: 0.01}} }
-layer { name:"loss-dsn1" type: "SigmoidCrossEntropyLoss" bottom: "score-dsn1" bottom: "edge_map" top:"dsn1_loss"  loss_weight: 0.00002}
-
-## DSN conv 2 ###
-layer { name: "dsn2_1" type: "Convolution" bottom: "conv2_2" top: "dsn2_1"
-  param { lr_mult: 1 decay_mult: 1 } param { lr_mult: 2 decay_mult: 0}
-  convolution_param {num_output: 64 kernel_size: 3 pad: 1 stride: 2 weight_filler {type: "gaussian" std: 0.01}} }
-layer {
-  name: "relu_dsn2_1"
-  type: "ReLU"
-  bottom: "dsn2_1"
-  top: "dsn2_1"
-}
-layer { name: "dsn2_2" type: "Convolution" bottom: "dsn2_1" top: "dsn2_2"
-  param { lr_mult: 1 decay_mult: 1 } param { lr_mult: 2 decay_mult: 0}
-  convolution_param {num_output: 64 kernel_size: 3 pad: 1 stride: 2 weight_filler {type: "gaussian" std: 0.01}} }
-layer {
-  name: "relu_dsn2_2"
-  type: "ReLU"
-  bottom: "dsn2_2"
-  top: "dsn2_2"
-}
-layer { name: "score-dsn2" type: "Convolution" bottom: "dsn2_2" top: "score-dsn2"
-  param { lr_mult: 1 decay_mult: 1 } param { lr_mult: 2 decay_mult: 0}
-  convolution_param {num_output: 25 kernel_size: 1 weight_filler {type: "gaussian" std: 0.01}} }
-layer { name:"loss-dsn2" type: "SigmoidCrossEntropyLoss" bottom: "score-dsn2" bottom: "edge_map" top:"dsn2_loss"  loss_weight: 0.00002}
-
-## DSN conv 3 ###
-layer { name: "dsn3_1" type: "Convolution" bottom: "conv3_3" top: "dsn3_1"
-  param { lr_mult: 1 decay_mult: 1 } param { lr_mult: 2 decay_mult: 0}
-  convolution_param {num_output: 64 kernel_size: 3 pad: 1 stride: 2 weight_filler {type: "gaussian" std: 0.01}} }
-layer {
-  name: "relu_dsn3_1"
-  type: "ReLU"
-  bottom: "dsn3_1"
-  top: "dsn3_1"
-}
-layer { name: "score-dsn3" type: "Convolution" bottom: "dsn3_1" top: "score-dsn3"
-  param { lr_mult: 1 decay_mult: 1 } param { lr_mult: 2 decay_mult: 0}
-  convolution_param {num_output: 25 kernel_size: 1 weight_filler {type: "gaussian" std: 0.01}} }
-layer { name:"loss-dsn3" type: "SigmoidCrossEntropyLoss" bottom: "score-dsn3" bottom: "edge_map" top:"dsn3_loss"  loss_weight: 0.00002}
-
-## DSN conv 4 ###
-layer { name: "score-dsn4" type: "Convolution" bottom: "conv4_3" top: "score-dsn4"
-  param { lr_mult: 1 decay_mult: 1 } param { lr_mult: 2 decay_mult: 0}
-  convolution_param {num_output: 25 kernel_size: 1 weight_filler {type: "gaussian" std: 0.01}} }
-layer { name:"loss-dsn4" type: "SigmoidCrossEntropyLoss" bottom: "score-dsn4" bottom: "edge_map" top:"dsn4_loss"  loss_weight: 0.00002}
-
-## DSN conv 5 ###
-layer { name: "score-dsn5" type: "Convolution" bottom: "conv5_3" top: "score-dsn5"
-  param { lr_mult: 1 decay_mult: 1 } param { lr_mult: 2 decay_mult: 0}
-  convolution_param {num_output: 25 kernel_size: 1 weight_filler {type: "gaussian" std: 0.01}} }
-layer { name:"loss-dsn5" type: "SigmoidCrossEntropyLoss" bottom: "score-dsn5" bottom: "edge_map" top:"dsn5_loss"  loss_weight: 0.00002}
-
-
-### Concat and multiscale weight layer ###
-layer { name: "concat" bottom: "score-dsn1"  bottom: "score-dsn2" bottom: "score-dsn3" 
-         bottom: "score-dsn4" bottom: "score-dsn5" top: "concat-upscore" type: "Concat"
-  concat_param { concat_dim: 1} }
-
-layer { name: "new-score-weighting" type: "Convolution" bottom: "concat-upscore" top: "upscore-fuse"
-  param { lr_mult: 1 decay_mult: 1 } param { lr_mult: 2 decay_mult: 0}
-  convolution_param {num_output: 25 kernel_size: 1 weight_filler {type: "gaussian" std: 0.01} } }
-layer { name:"loss-fuse" type: "SigmoidCrossEntropyLoss" bottom: "upscore-fuse" bottom: "edge_map" top:"fuse_loss"  loss_weight: 0.00005}
-
-layer {
-  name: "upscore-sigmoid"
-  type: "Sigmoid"
-  bottom: "upscore-fuse"
-  top: "upscore-sigmoid"
-}
-
-layer {
-  name: "lconv"
-  type: "LearntLConv"
-  bottom: "fc7-conv"
-  bottom: "upscore-sigmoid"
-  top: "lconv"
-}
-
-
 layer {
   name: "fc8-VOC"
   type: "Convolution"
-  bottom: "lconv"
+  bottom: "fc7-conv"
   top: "fc8-VOC"
   param {
     lr_mult: 1
@@ -624,7 +504,7 @@ layer {
   }
 }
 layer {
-  name: "upscore2"
+  name: "upscore"
   type: "Deconvolution"
   bottom: "fc8-VOC"
   top: "upscore"
