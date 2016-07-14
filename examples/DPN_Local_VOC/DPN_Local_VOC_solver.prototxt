@@ -1,12 +1,10 @@
 # The train/test net protocol buffer definition
-net: "examples/DPN_VOC/DPN_VOC.prototxt"
+train_net: "/DATA3/caffe/examples/DPN_Local_VOC/DPN_Local_VOC.prototxt"
 # test_iter specifies how many forward passes the test should carry out.
 # In the case of MNIST, we have test batch size 100 and 100 test iterations,
 # covering the full 10,000 testing images.
-test_iter: 720
 # Carry out testing every 500 training iterations.
-test_interval: 500
-base_lr: 0.001
+base_lr: 0.0001
 momentum: 0.9
 weight_decay: 0.0005
 # The learning rate policy
@@ -17,9 +15,10 @@ stepsize: 6000
 display: 10
 # The maximum number of iterations
 max_iter: 9000
+iter_size: 10
 # snapshot intermediate results
 snapshot: 2000
-snapshot_prefix: "examples/DPN_VOC/model/unary"
+snapshot_prefix: "/DATA3/caffe/examples/DPN_Local_VOC/unary"
 # solver mode: CPU or GPU
 solver_mode: GPU
 
@@ -30,4 +29,4 @@ pavi_server_host: "pavi.parrotsdnn.org"
 pavi_username: "xxli"
 pavi_password: "123456"
 session: "DPN_VOC_unary"
-workdir: "examples/DPN_VOC/"
+workdir: "examples/DPN_Local_VOC/"

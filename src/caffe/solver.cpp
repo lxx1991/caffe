@@ -64,8 +64,10 @@ void Solver<Dtype>::Init(const SolverParameter& param) {
   }
 
   if (param_.pavi_log())
+  {
     pavi_init(this->param(), this->net()->name());
-  LOG(INFO) << "Pavi init done.";
+    LOG(INFO) << "Pavi init done.";
+  }
   iter_ = 0;
   current_step_ = 0;
   sample_iter_ = 0;
@@ -258,7 +260,7 @@ void Solver<Dtype>::Step(int iters) {
               << result_vec[k] << loss_msg_stream.str();
 
           if (param_.pavi_log())
-            pavi_send_log("", output_name, (float)result_vec[k], "Train", iter_);
+            pavi_send_log("", output_name, (float)result_vec[k] * loss_weight, "Train", iter_);
 
         }
       }
@@ -328,6 +330,7 @@ void Solver<Dtype>::StepSample() {
 
   if (sample_iter_ == param_.iter_size())
   {
+    sample_iter_ = 0;
     loss /= param_.iter_size();
     // average the loss across iterations for smoothed reporting
     UpdateSmoothedLoss(loss, iter_, average_loss);
@@ -358,7 +361,7 @@ void Solver<Dtype>::StepSample() {
               << result_vec[k] << loss_msg_stream.str();
 
           if (param_.pavi_log())
-            pavi_send_log("", output_name, (float)result_vec[k], "Train", iter_);
+            pavi_send_log("", output_name, (float)result_vec[k] * loss_weight, "Train", iter_);
 
         }
       }
