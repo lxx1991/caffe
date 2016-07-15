@@ -17,11 +17,11 @@ dir_img = [dir_data, 'JPEGImages/'];
 file_list_name = [dir_data, 'ImageSets/Segmentation/', list_name, '.txt'];
 file_img_mean = './vgg16_mean.mat';
 
-dir_model = '../../examples/DPN_Local_VOC/';
-file_model = [dir_model, 'temp/unary_iter_8000.caffemodel'];
-file_def_model = [dir_model, 'temp/DPN_Local_VOC_test.prototxt'];
+dir_model = '../../examples/Res_Coco/';
+file_model = [dir_model, 'model/finetune2_iter_16000.caffemodel'];
+file_def_model = [dir_ model, 'test/DPN2_VOC_test.prototxt'];
 
-results_name = 'DPN_Local_VOC';
+results_name = 'Res_VOC';
 dir_results = ['../../data/results/', data_set, '/Segmentation/', results_name, '_', list_name, '_cls/']; mkdir(dir_results);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
