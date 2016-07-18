@@ -4,15 +4,15 @@ if exist('../+caffe', 'dir')
 end;
 caffe.reset_all();
 
-use_gpu = 4;
+use_gpu = 1;
 caffe.set_mode_gpu();
 caffe.set_device(use_gpu);
 %  caffe.set_mode_cpu();
 
 %%
 dir_model = fullfile('..', '..', 'examples', 'DPN_Local_VOC');
-file_solver = fullfile(dir_model, 'DPN_VOC_solver.prototxt');
-file_weight = fullfile(dir_model, 'VGG_ILSVRC_16_layers_conv.caffemodel');
+file_solver = fullfile(dir_model, 'DPN_Local_Pre_VOC_solver.prototxt');
+file_weight = fullfile(dir_model, 'DPN_VOC_Pre.caffemodel');
 
 caffe_solver = caffe.Solver(file_solver);
 caffe_solver.net.copy_from(file_weight);
@@ -36,6 +36,7 @@ while (caffe_solver.iter() <= caffe_solver.max_iter())
         continue;
     end;
     
+    load(fullfile(dir_dataset, edge_list{idx}));
     img = imread(fullfile(dir_dataset, name_list{idx}));
     [label, cmap] = imread(fullfile(dir_dataset, label_list{idx}));
 
@@ -47,13 +48,15 @@ while (caffe_solver.iter() <= caffe_solver.max_iter())
     
     
     input_img = img(1:new_height_img, 1:new_width_img, :);
+    input_edge_map = edge_map(1:(new_height_img/8), 1:(new_width_img/8), :);
     input_label = label(1:new_height_img, 1:new_width_img, :);
 
     input_img = single(input_img(:, :, [3, 2, 1])) - IMAGE_MEAN(1:new_height_img, 1:new_width_img, :);
     
     input_img = permute(single(input_img), [2, 1, 3]);
+    input_edge_map = permute(single(input_edge_map), [2, 1, 3]);
     input_label = permute(single(input_label), [2, 1, 3]);
-    net_inputs = {input_img, input_label};
+    net_inputs = {input_img, input_edge_map, input_label};
     
     caffe_solver.net.set_phase('train');
     caffe_solver.net.reshape_as_input(net_inputs);
