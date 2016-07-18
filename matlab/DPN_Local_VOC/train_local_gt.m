@@ -4,7 +4,8 @@ if exist('../+caffe', 'dir')
 end;
 caffe.reset_all();
 
-use_gpu = 0;
+use_gpu = 6;
+
 caffe.set_mode_gpu();
 caffe.set_device(use_gpu);
 %  caffe.set_mode_cpu();

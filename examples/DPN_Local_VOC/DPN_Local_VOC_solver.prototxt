@@ -1,5 +1,5 @@
 # The train/test net protocol buffer definition
-train_net: "/DATA3/caffe/examples/DPN_Local_VOC/DPN_Local_VOC.prototxt"
+train_net: "/DATA/xxli/caffe/examples/DPN_Local_VOC/DPN_Local_VOC.prototxt"
 # test_iter specifies how many forward passes the test should carry out.
 # In the case of MNIST, we have test batch size 100 and 100 test iterations,
 # covering the full 10,000 testing images.
@@ -18,7 +18,11 @@ max_iter: 9000
 iter_size: 15
 # snapshot intermediate results
 snapshot: 1000
+<<<<<<< HEAD
+snapshot_prefix: "/DATA/xxli/caffe/examples/DPN_Local_VOC/model_Local/unary"
+=======
 snapshot_prefix: "/DATA3/caffe/examples/DPN_Local_VOC/model_Local/unary"
+>>>>>>> 805d82d34f0e44161704554ef9a26660f62d2084
 # solver mode: CPU or GPU
 solver_mode: GPU
 
