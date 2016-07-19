@@ -10,9 +10,9 @@ caffe.set_device(use_gpu);
 %  caffe.set_mode_cpu();
 
 %%
-dir_model = fullfile('..', '..', 'examples', 'DPN_Local_VOC');
-file_solver = fullfile(dir_model, 'DPN_VOC_solver.prototxt');
-file_weight = fullfile(dir_model, 'VGG_ILSVRC_16_layers_conv.caffemodel');
+dir_model = fullfile('..', '..', 'examples', 'Res_VOC');
+file_solver = fullfile(dir_model, 'Res_VOC_Mat_solver.prototxt');
+file_weight = fullfile(dir_model, 'ResNet-101-model.caffemodel');
 
 caffe_solver = caffe.Solver(file_solver);
 caffe_solver.net.copy_from(file_weight);

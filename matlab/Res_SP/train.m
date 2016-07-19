@@ -2,6 +2,13 @@ clear; clc;
 if exist('../+caffe', 'dir')
   addpath('..');
 end;
+
+vlfeat_root = fullfile('/', 'DATA3', 'vlfeat-0.9.20', 'toolbox', 'vl_setup');
+run(vlfeat_root);
+
+REGIONSIZE = 22; 
+REGULARIZER = 0.1;
+
 caffe.reset_all();
 
 use_gpu = 0;
@@ -10,9 +17,9 @@ caffe.set_device(use_gpu);
 %  caffe.set_mode_cpu();
 
 %%
-dir_model = fullfile('..', '..', 'examples', 'DPN_Local_VOC');
-file_solver = fullfile(dir_model, 'DPN_VOC_solver.prototxt');
-file_weight = fullfile(dir_model, 'VGG_ILSVRC_16_layers_conv.caffemodel');
+dir_model = fullfile('..', '..', 'examples', 'Res_SP_VOC');
+file_solver = fullfile(dir_model, 'Res_VOC_solver.prototxt');
+file_weight = fullfile(dir_model, 'ResNet-101-model.caffemodel');
 
 caffe_solver = caffe.Solver(file_solver);
 caffe_solver.net.copy_from(file_weight);
@@ -39,31 +46,46 @@ while (caffe_solver.iter() <= caffe_solver.max_iter())
     
     img = imread(fullfile(dir_dataset, name_list{idx}));
     [label, cmap] = imread(fullfile(dir_dataset, label_list{idx}));
-    tic;
     [input_img, input_label] = im_tf(img, label);
+    s_img = input_img; s_label = input_label;
+    
+    tic;
+    %imwrite(input_img, '/DATA3/gSLICr/temp.jpg');
+    %system('/DATA3/gSLICr/build/demo');
+    %input_sp = imread('/DATA3/gSLICr/seg_temp.pgm');
+    
+    input_sp = segment_slic(input_img, REGIONSIZE, REGULARIZER);
+    s_sp = input_sp;
+    sp_label = sp_graph(double(input_sp), double(input_label));
     toc;
+    
     height_img = size(input_img, 1);
     width_img = size(input_img, 2);
 
     input_img = single(input_img(:, :, [3, 2, 1])) - IMAGE_MEAN(1:height_img, 1:width_img, :);
     
     input_img = permute(single(input_img), [2, 1, 3]);
-    input_label = permute(single(input_label), [2, 1, 3]);
-    net_inputs = {input_img, input_label};
+    sp_label = permute(single(sp_label), [2, 1, 3]);
+    input_sp = permute(single(input_sp), [2, 1, 3]);
+    net_inputs = {input_img, input_sp, sp_label};
     
     caffe_solver.net.set_phase('train');
     caffe_solver.net.reshape_as_input(net_inputs);
-    
     caffe_solver.net.set_input_data(net_inputs);
     caffe_solver.step_sample();
+    
     if (exist('show', 'var') && mod(caffe_solver.iter(), show) == 0)
         subplot(221);
-        imshow(img);
+        imshow(s_img);
         subplot(222);
-        imshow(label, cmap);
-        score = caffe_solver.net.blobs('upscore').get_data();
-        [~, result] = max(permute(score, [2, 1, 3]), [], 3);
+        imshow(s_label, cmap);
         subplot(223);
+        score = caffe_solver.net.blobs('score').get_data();
+        [~, score] = max(permute(score, [2, 1, 3]), [], 3);
+        result = zeros(size(s_sp), 'uint8');
+        for i = 0 : size(score, 1) - 1
+            result(s_sp == i) = score(i + 1) - 1;
+        end;        
         imshow(result, cmap);
         drawnow;
     end;
