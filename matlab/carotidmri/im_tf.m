@@ -1,9 +1,11 @@
-function [ img, label ] = im_tf( img, label)
+function [ img1, img2, img3, img4, label ] = im_tf( img1, img2, img3, img4, label)
 %IMAGE_TRANSFORME Summary of this function goes here
     %   Detailed explanation goes here
 
-    rescale_l = 0.8;
-    rescale_h = 1.2;
+    img = cat(3, img1, img2, img3, img4);
+    
+    rescale_l = 1.25;
+    rescale_h = 1.375;
 
     if (rand()>0.5)
         img = img(:, end:-1:1, :);
@@ -17,8 +19,8 @@ function [ img, label ] = im_tf( img, label)
     height_img = size(img, 1);
     width_img = size(img, 2);
     
-    th = floor(height_img / 32) * 32;
-    tw = floor(width_img / 32) * 32;
+    th = 320;
+    tw = 320;
 
     st_h = height_img - th;
     st_w = width_img - tw;
@@ -31,6 +33,10 @@ function [ img, label ] = im_tf( img, label)
     tmp = randi(st_w + 1);
     img = img(:, tmp:tmp + tw - 1, :);
     label = label(:, tmp:tmp + tw - 1, :);
-
+    
+    img1 = img(:, :, 1:3);
+    img2 = img(:, :, 4:6);
+    img3 = img(:, :, 7:9);
+    img4 = img(:, :, 10:12);
 end
 

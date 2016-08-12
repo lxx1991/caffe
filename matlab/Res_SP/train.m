@@ -3,15 +3,17 @@ if exist('../+caffe', 'dir')
   addpath('..');
 end;
 
+rand('state', 0);
+
 vlfeat_root = fullfile('/', 'DATA3', 'vlfeat-0.9.20', 'toolbox', 'vl_setup');
 run(vlfeat_root);
 
-REGIONSIZE = 22; 
+REGIONSIZE = 20; 
 REGULARIZER = 0.1;
 
 caffe.reset_all();
 
-use_gpu = 0;
+use_gpu = 1;
 caffe.set_mode_gpu();
 caffe.set_device(use_gpu);
 %  caffe.set_mode_cpu();
@@ -38,7 +40,9 @@ IMAGE_MEAN = imresize(d.image_mean, [IMAGE_DIM, IMAGE_DIM], 'nearest');
 idx = 1; show = 10;
 %%
 while (caffe_solver.iter() <= caffe_solver.max_iter())
-    
+
+    disp(idx);
+
 %     if (~exist(fullfile(dir_dataset, [edge_list{idx}]), 'file'))
 %         idx = mod(idx,length(name_list)) + 1;
 %         continue;
@@ -49,18 +53,25 @@ while (caffe_solver.iter() <= caffe_solver.max_iter())
     [input_img, input_label] = im_tf(img, label);
     s_img = input_img; s_label = input_label;
     
-    tic;
-    %imwrite(input_img, '/DATA3/gSLICr/temp.jpg');
-    %system('/DATA3/gSLICr/build/demo');
-    %input_sp = imread('/DATA3/gSLICr/seg_temp.pgm');
-    
-    input_sp = segment_slic(input_img, REGIONSIZE, REGULARIZER);
-    s_sp = input_sp;
-    sp_label = sp_graph(double(input_sp), double(input_label));
-    toc;
-    
     height_img = size(input_img, 1);
     width_img = size(input_img, 2);
+    
+    tic;
+    fid = fopen('/DATA3/gSLICr/temp.txt', 'wb');
+    fwrite(fid, height_img, 'int');
+    fwrite(fid, width_img, 'int');
+    fwrite(fid, reshape(permute(input_img, [2, 1, 3]), height_img * width_img, [])', 'uint8');
+    system('/DATA3/gSLICr/build/demo');
+    input_sp = imread('/DATA3/gSLICr/seg_temp.pgm');
+    [sp_label, input_sp]= sp_graph(double(input_sp), double(input_label));
+    s_sp = input_sp;
+    fclose(fid);
+    toc;
+
+%     input_sp = segment_slic(input_img, REGIONSIZE, REGULARIZER);
+%     [sp_label, input_sp]= sp_graph(double(input_sp), double(input_label));
+%     s_sp = input_sp;
+    
 
     input_img = single(input_img(:, :, [3, 2, 1])) - IMAGE_MEAN(1:height_img, 1:width_img, :);
     
@@ -83,8 +94,15 @@ while (caffe_solver.iter() <= caffe_solver.max_iter())
         score = caffe_solver.net.blobs('score').get_data();
         [~, score] = max(permute(score, [2, 1, 3]), [], 3);
         result = zeros(size(s_sp), 'uint8');
-        for i = 0 : size(score, 1) - 1
+        for i = 0 : length(score) - 1
             result(s_sp == i) = score(i + 1) - 1;
+        end;        
+        imshow(result, cmap);
+        subplot(224);
+        score = sp_label;
+        result = zeros(size(s_sp), 'uint8');
+        for i = 0 : length(score) - 1
+            result(s_sp == i) = score(i + 1);
         end;        
         imshow(result, cmap);
         drawnow;

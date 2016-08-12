@@ -1,0 +1,240 @@
+layer {
+  name: "Dilation_1"
+  type: "Convolution"
+  bottom: "res5c"
+  top: "Dilation_1"
+  param {
+    name: "Dilation_1_w"
+    lr_mult: 10
+    decay_mult: 10
+  }
+  param {
+    name: "Dilation_1_b"
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 42
+    kernel_size: 3
+    pad: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+layer {
+  name: "Dilation_2"
+  type: "Convolution"
+  bottom: "Dilation_1"
+  top: "Dilation_2"
+  param {
+    name: "Dilation_2_w"
+    lr_mult: 10
+    decay_mult: 10
+  }
+  param {
+    name: "Dilation_2_b"
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 42
+    kernel_size: 3
+    pad: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "Dilation_3"
+  type: "Convolution"
+  bottom: "Dilation_2"
+  top: "Dilation_3"
+  param {
+    name: "Dilation_3_w"
+    lr_mult: 10
+    decay_mult: 10
+  }
+  param {
+    name: "Dilation_3_b"
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 84
+    kernel_size: 3
+    dilation: 2
+    pad: 2
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "Dilation_4"
+  type: "Convolution"
+  bottom: "Dilation_3"
+  top: "Dilation_4"
+  param {
+    name: "Dilation_4_w"
+    lr_mult: 10
+    decay_mult: 10
+  }
+  param {
+    name: "Dilation_4_b"
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 168
+    kernel_size: 3
+    dilation: 4
+    pad: 4
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "Dilation_5"
+  type: "Convolution"
+  bottom: "Dilation_4"
+  top: "Dilation_5"
+  param {
+    name: "Dilation_5_w"
+    lr_mult: 10
+    decay_mult: 10
+  }
+  param {
+    name: "Dilation_5_b"
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 336
+    kernel_size: 3
+    dilation: 8
+    pad: 8
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "Dilation_6"
+  type: "Convolution"
+  bottom: "Dilation_5"
+  top: "Dilation_6"
+  param {
+    name: "Dilation_6_w"
+    lr_mult: 10
+    decay_mult: 10
+  }
+  param {
+    name: "Dilation_6_b"
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 672
+    kernel_size: 3
+    dilation: 16
+    pad: 16
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+layer {
+  name: "Dilation_7"
+  type: "Convolution"
+  bottom: "Dilation_6"
+  top: "Dilation_7"
+  param {
+    name: "Dilation_7_w"
+    lr_mult: 10
+    decay_mult: 10
+  }
+  param {
+    name: "Dilation_7_b"
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 672
+    kernel_size: 3
+    pad: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+layer {
+  name: "Dilation_8"
+  type: "Convolution"
+  bottom: "Dilation_7"
+  top: "Dilation_8"
+  param {
+    name: "Dilation_8_w"
+    lr_mult: 10
+    decay_mult: 10
+  }
+  param {
+    name: "Dilation_8_b"
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 21
+    kernel_size: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+

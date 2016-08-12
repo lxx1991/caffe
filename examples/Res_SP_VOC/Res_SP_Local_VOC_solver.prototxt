@@ -1,5 +1,5 @@
 # The train/test net protocol buffer definition
-train_net: "/DATA3/caffe/examples/Res_SP_VOC/Res_SP_VOC.prototxt"
+train_net: "/DATA3/caffe/examples/Res_SP_VOC/Res_SP_Local_VOC.prototxt"
 # test_iter: 1449
 # Carry out testing every 500 training iterations.
 # test_interval: 500
@@ -17,7 +17,7 @@ max_iter: 9000
 iter_size: 10
 # snapshot intermediate results
 snapshot: 1000
-snapshot_prefix: "/DATA3/caffe/examples/Res_SP_VOC/model/unary"
+snapshot_prefix: "/DATA3/caffe/examples/Res_SP_VOC/model/unary_local_edge"
 # solver mode: CPU or GPU
 solver_mode: GPU
 
@@ -26,5 +26,5 @@ pavi_log: true
 pavi_server_host: "pavi.parrotsdnn.org"
 pavi_username: "xxli"
 pavi_password: "123456"
-session: "Res_SP_VOC"
+session: "Res_SP_Local_VOC"
 workdir: "examples/Res_SP_VOC/"
