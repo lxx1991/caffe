@@ -12,7 +12,7 @@ caffe.set_device(use_gpu);
 %%
 dir_model = fullfile('..', '..', 'examples', 'carotidmri');
 file_def_model = fullfile(dir_model, 'Res_Mat_test.prototxt');
-file_model = fullfile(dir_model, 'model', 'unary_mat_iter_9000.caffemodel');
+file_model = fullfile(dir_model, 'model', 'unary_mat_iter_1000.caffemodel');
 
 net = caffe.Net(file_def_model, file_model, 'test');
 

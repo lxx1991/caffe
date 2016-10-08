@@ -1,5 +1,5 @@
 # The train/test net protocol buffer definition
-train_net: "/DATA3/caffe/examples/Res_VOC/Res_VOC_Mat.prototxt"
+train_net: "/DATA3/caffe/examples/Res_VOC/Res_VOC_Mat_ms.prototxt"
 # test_iter: 1449
 # Carry out testing every 500 training iterations.
 # test_interval: 500
@@ -17,6 +17,6 @@ max_iter: 20000
 iter_size: 10
 # snapshot intermediate results
 snapshot: 1000
-snapshot_prefix: "/DATA3/caffe/examples/Res_VOC/model/unary_mat"
+snapshot_prefix: "/DATA3/caffe/examples/Res_VOC/model_ms/unary_mat"
 # solver mode: CPU or GPU
 solver_mode: GPU

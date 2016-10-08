@@ -17,17 +17,17 @@ dir_img = [dir_data, 'JPEGImages/'];
 file_list_name = [dir_data, 'ImageSets/Segmentation/', list_name, '.txt'];
 file_img_mean = './vgg16_mean.mat';
 
-dir_model = '../../examples/Res_VOC/';
-file_model = [dir_model, 'model_ms/unary_mat_iter_18000.caffemodel'];
-file_def_model = [dir_model, 'test/Res_VOC_Mat_d.prototxt'];
+dir_model = '../../examples/IRes_VOC/';
+file_model = [dir_model, 'model/unary_mat_iter_18000.caffemodel'];
+file_def_model = [dir_model, 'test/test.prototxt'];
 
-results_name = 'Res_VOC';
+results_name = 'IRes_VOC';
 dir_results = ['../../data/results/', data_set, '/Segmentation/', results_name, '_', list_name, '_cls/']; mkdir(dir_results);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Initialization;
 
-use_gpu = 1;
+use_gpu = 0;
 
 if use_gpu ~= -1
     caffe.set_mode_gpu();

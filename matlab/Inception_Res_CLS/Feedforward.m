@@ -17,11 +17,11 @@ dir_img = [dir_data, 'JPEGImages/'];
 file_list_name = [dir_data, 'ImageSets/Segmentation/', list_name, '.txt'];
 file_img_mean = './vgg16_mean.mat';
 
-dir_model = '../../examples/Res_VOC/';
-file_model = [dir_model, 'model_ms/unary_mat_iter_18000.caffemodel'];
-file_def_model = [dir_model, 'test/Res_VOC_Mat_d.prototxt'];
+dir_model = '../../examples/IRes_VOC_CLS/';
+file_model = [dir_model, 'model/unary_mat_iter_9000.caffemodel'];
+file_def_model = [dir_model, 'test/test.prototxt'];
 
-results_name = 'Res_VOC';
+results_name = 'IRes_VOC';
 dir_results = ['../../data/results/', data_set, '/Segmentation/', results_name, '_', list_name, '_cls/']; mkdir(dir_results);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -55,10 +55,8 @@ for id_img = 1:num_img
     im = imread([dir_img, name_img_cur]);
     label = imread(['/DATA3/caffe/data/VOC_arg/SegmentationClass/', img_list{id_img}, '.png']);
 
-    pre_height_img = size(im, 1);
-    pre_width_img = size(im, 2);
-    height_img = round(pre_height_img/32) * 32;
-    width_img = round(pre_width_img/32) * 32;
+    height_img = 299;
+    width_img = 299;
     im = imresize(im, [height_img, width_img]);
     
 
@@ -86,7 +84,7 @@ for id_img = 1:num_img
     
     input_data = {image(end:-1:1, :, :)};
     scores2 = net.forward(input_data);
-    scores = scores + scores2{1}(end:-1:1, :, :);
+    scores = scores + scores2{1};
     
     toc;
 
@@ -97,7 +95,6 @@ for id_img = 1:num_img
     
     % permute and crop scores
     scores = permute(scores, [2, 1, 3]);
-    scores = imresize(scores, [pre_height_img, pre_width_img]);
     
     [~, maxlabel] = max(scores, [], 3);
     maxlabel = uint8(maxlabel - 1);
@@ -105,13 +102,26 @@ for id_img = 1:num_img
     subplot(221);
     imshow(imread([dir_img, name_img_cur]));
     subplot(222);
-    imshow(uint8(maxlabel), cmap);
+    %imshow(uint8(maxlabel), cmap);
+    bar(scores(:, :, 2) - scores(:, :, 1));
 
     subplot(223);
     imshow(uint8(label), cmap);
     drawnow;
+    
+    label = unique(label);
+    input_label = zeros(20, 1);
+    for i = 1:length(label)
+        if label(i) > 0 && label(i) <255
+            input_label(label(i)) = 1;
+        end;
+    end;
+    subplot(224);
+    imshow(uint8(input_label), cmap);
+    
+    
     name_label_cur = [img_list{id_img}, '.png'];
-    imwrite(uint8(maxlabel), cmap, [dir_results, name_label_cur]);
+    %imwrite(uint8(maxlabel), cmap, [dir_results, name_label_cur]);
 
     disp(['Processing Img ', num2str(id_img), '...']);
 end

@@ -7151,15 +7151,141 @@ layer {
 
 ############################### classifiers ##########################
 layer {
-  name: "fc_VOC"
+  name: "fc1_VOC_c0"
   type: "Convolution"
   bottom: "res5c"
-  top: "fc_VOC"
+  top: "fc1_VOC_c0"
   param {
+    name: "fc1_VOC_c0_w"
     lr_mult: 10
     decay_mult: 10
   }
   param {
+    name: "fc1_VOC_c0_b"
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 21
+    kernel_size: 3
+    pad: 6
+    dilation: 6
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+layer {
+  name: "fc1_VOC_c1"
+  type: "Convolution"
+  bottom: "res5c"
+  top: "fc1_VOC_c1"
+  param {
+    name: "fc1_VOC_c1_w"
+    lr_mult: 10
+    decay_mult: 10
+  }
+  param {
+    name: "fc1_VOC_c1_b"
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 21
+    kernel_size: 3
+    dilation: 12
+    pad: 12
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+layer {
+  name: "fc1_VOC_c2"
+  type: "Convolution"
+  bottom: "res5c"
+  top: "fc1_VOC_c2"
+  param {
+    name: "fc1_VOC_c2_w"
+    lr_mult: 10
+    decay_mult: 10
+  }
+  param {
+    name: "fc1_VOC_c2_b"
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 21
+    kernel_size: 3
+    dilation: 18
+    pad: 18
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+layer {
+  name: "fc1_VOC_c3"
+  type: "Convolution"
+  bottom: "res5c"
+  top: "fc1_VOC_c3"
+  param {
+    name: "fc1_VOC_c3_w"
+    lr_mult: 10
+    decay_mult: 10
+  }
+  param {
+    name: "fc1_VOC_c3_b"
+    lr_mult: 20
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 21
+    kernel_size: 3
+    dilation: 24
+    pad: 24
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+layer {
+  name: "fc1_VOC_c4"
+  type: "Convolution"
+  bottom: "res5c"
+  top: "fc1_VOC_c4"
+  param {
+    name: "fc1_VOC_c4_w"
+    lr_mult: 10
+    decay_mult: 10
+  }
+  param {
+    name: "fc1_VOC_c4_b"
     lr_mult: 20
     decay_mult: 0
   }
@@ -7178,10 +7304,27 @@ layer {
   }
 }
 
+### SUM the all branches
+
+layer {
+  bottom: "fc1_VOC_c0"
+  bottom: "fc1_VOC_c1"
+  bottom: "fc1_VOC_c2"
+  bottom: "fc1_VOC_c3"
+  bottom: "fc1_VOC_c4"
+  top: "fc1_VOC"
+  name: "fc1_VOC"
+  type: "Eltwise"
+  eltwise_param {
+    operation: SUM
+  }
+}
+
+
 layer {
   name: "upscore"
   type: "Deconvolution"
-  bottom: "fc_VOC"
+  bottom: "fc1_VOC"
   top: "upscore"
   param {
     lr_mult: 0

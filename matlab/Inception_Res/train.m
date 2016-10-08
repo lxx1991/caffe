@@ -4,14 +4,14 @@ if exist('../+caffe', 'dir')
 end;
 caffe.reset_all();
 
-use_gpu = 1;
+use_gpu = 0;
 caffe.set_mode_gpu();
 caffe.set_device(use_gpu);
 %  caffe.set_mode_cpu();
 
 %%
-dir_model = fullfile('..', '..', 'examples', 'Res_VOC');
-file_solver = fullfile(dir_model, 'Res_VOC_Mat_ms_solver.prototxt');
+dir_model = fullfile('..', '..', 'examples', 'IRes_VOC');
+file_solver = fullfile(dir_model, 'IRes_VOC_Mat_ms_solver.prototxt');
 file_weight = fullfile(dir_model, 'model/unary_mat_iter_18000.caffemodel');
 
 caffe_solver = caffe.Solver(file_solver);
