@@ -5,13 +5,13 @@ end;
 
 caffe.reset_all();
 
-use_gpu = 0;
+use_gpu = 1;
 caffe.set_mode_gpu();
 caffe.set_device(use_gpu);
 
 dir_model = fullfile('..', '..', 'examples', 'IRes_VOC_Mapping');
-file_solver = fullfile(dir_model, 'IRes_VOC_Mat_solver.prototxt');
-file_weight = fullfile(dir_model, 'model', 'unary_mat_iter_0.caffemodel');
+file_solver = fullfile(dir_model, 'IRes_VOC_LRN_Mat_solver.prototxt');
+file_weight = fullfile(dir_model, 'model_LRN', 'unary_mat_iter_0.caffemodel');
 
 caffe_solver = caffe.Solver(file_solver);
 caffe_solver.net.copy_from(file_weight);

@@ -49,7 +49,7 @@ void LRNLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
     LayerParameter power_param;
     power_param.mutable_power_param()->set_power(-beta_);
     power_param.mutable_power_param()->set_scale(alpha_);
-    power_param.mutable_power_param()->set_shift(Dtype(1));
+    power_param.mutable_power_param()->set_shift(Dtype(k_));
     power_layer_.reset(new PowerLayer<Dtype>(power_param));
     power_layer_->SetUp(pool_top_vec_, power_top_vec_);
     // Set up a product_layer_ to compute outputs by multiplying inputs by the

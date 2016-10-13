@@ -17,8 +17,8 @@ dir_img = [dir_data, 'JPEGImages/'];
 file_list_name = [dir_data, 'ImageSets/Segmentation/', list_name, '.txt'];
 file_img_mean = './vgg16_mean.mat';
 
-dir_model = '../../examples/IRes_VOC/';
-file_model = [dir_model, 'unary_mat_iter_7000.caffemodel'];
+dir_model = '../../examples/IRes_VOC_Mapping/';
+file_model = [dir_model, 'model/unary_mat_iter_15000.caffemodel'];
 file_def_model = [dir_model, 'test/test.prototxt'];
 
 results_name = 'IRes_VOC';
