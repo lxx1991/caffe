@@ -11,7 +11,7 @@ caffe.set_device(use_gpu);
 
 dir_model = fullfile('..', '..', 'examples', 'IRes_VOC_Mapping');
 file_solver = fullfile(dir_model, 'IRes_VOC_LRN_Mat_solver.prototxt');
-file_weight = fullfile(dir_model, 'model_LRN', 'unary_mat_iter_0.caffemodel');
+file_weight = fullfile(dir_model, 'model', 'unary_mat_iter_0.caffemodel');
 
 caffe_solver = caffe.Solver(file_solver);
 caffe_solver.net.copy_from(file_weight);
@@ -71,14 +71,12 @@ idx = 1; show = 10;
 while (caffe_solver.iter() <= caffe_solver.max_iter())
     
     cls = randi(length(object));
-    
     p = zeros(2, 1);
     p(1) = randi(length(object{cls}));
     p(2) = randi(length(object{cls}));
     while  p(2) ==  p(1)
         p(2) = randi(length(object{cls}));
     end;
-    
     net_inputs = cell(1, 6);
     img = cell(1,2);
     label = cell(1,2);
@@ -95,13 +93,17 @@ while (caffe_solver.iter() <= caffe_solver.max_iter())
         height_img = size(img{i}, 1);
         width_img = size(img{i}, 2);
         
-        imshow(img{i}(roi{i}(2) + 1:roi{i}(4), roi{i}(1) + 1:roi{i}(3), :));
 
-        net_inputs{(i-1)*3+1} = permute(single(img{i}(:, :, [3, 2, 1])) - IMAGE_MEAN(1:height_img, 1:width_img, :), [2, 1, 3]);
-        net_inputs{(i-1)*3+2} = permute(single([0, roi{i}]), [2, 1, 3]);
-        net_inputs{(i-1)*3+3} = permute(single(label{i}), [2, 1, 3]);
+        net_inputs{(i-1)*4+1} = permute(single(img{i}(:, :, [3, 2, 1])) - IMAGE_MEAN(1:height_img, 1:width_img, :), [2, 1, 3]);
+        net_inputs{(i-1)*4+2} = permute(single([0, roi{i}]), [2, 1, 3]);
+        net_inputs{(i-1)*4+3} = permute(single(label{i}), [2, 1, 3]);
+        
+        patch = single(label{i} == cls);
+        patch = patch(roi{i}(2) + 1:roi{i}(4), roi{i}(1) + 1:roi{i}(3), :);
+        patch = imresize(patch, [7 7], 'nearest');
+        net_inputs{(i-1)*4+4} = permute(single(cat(3, 1 - patch, patch)), [2, 1, 3]);
     end;
-    
+    net_inputs{8} = net_inputs{8}(:, :, 2);
     
     caffe_solver.net.set_phase('train');
     caffe_solver.net.reshape_as_input(net_inputs);
@@ -112,7 +114,7 @@ while (caffe_solver.iter() <= caffe_solver.max_iter())
     if (exist('show', 'var') && mod(caffe_solver.iter(), show) == 0)
         
         colormap default;
-        subplot(427);
+        subplot(527);
         feat = permute(caffe_solver.net.blobs('mapping').get_data(), [2, 1, 3]);
         for i = 1:7
             for j = 1:7
@@ -124,7 +126,7 @@ while (caffe_solver.iter() <= caffe_solver.max_iter())
         freezeColors;
         
         colormap default;
-        subplot(428);
+        subplot(528);
         feat = permute(caffe_solver.net.blobs('roi_pool2').get_data(), [2, 1, 3]);
         for i = 1:7
             for j = 1:7
@@ -135,19 +137,33 @@ while (caffe_solver.iter() <= caffe_solver.max_iter())
         axis image;
         freezeColors;
         
+        colormap default;
+        subplot(529);
+        feat = permute(caffe_solver.net.blobs('mapping_label_p').get_data(), [2, 1, 3]);
+        imagesc(feat(:, :, 2));
+        axis image;
+        freezeColors;
+        
+        colormap default;
+        subplot(5,2,10);
+        feat = permute(caffe_solver.net.blobs('v2_label_p').get_data(), [2, 1, 3]);
+        imagesc(feat);
+        axis image;
+        freezeColors;
+        
         for i = 1:2
-            subplot(4, 2, i);
+            subplot(5, 2, i);
             imshow(img{i});
             rectangle('Position', [roi{i}(1)+1,roi{i}(2)+1,roi{i}(3)-roi{i}(1),roi{i}(4) - roi{i}(2)], 'LineWidth', 2);
-            subplot(4, 2, 2 + i);
+            subplot(5, 2, 2 + i);
             imshow(label{i}, cmap);
         end;
-        subplot(425);
+        subplot(525);
         score = permute(caffe_solver.net.blobs('upscore').get_data(), [2, 1, 3, 4]);
         [~, result] = max(score, [], 3);
         imshow(result(:, :, :), cmap);
         
-        subplot(426);
+        subplot(526);
         score = permute(caffe_solver.net.blobs('v2_upscore').get_data(), [2, 1, 3, 4]);
         [~, result] = max(score, [], 3);
         imshow(result(:, :, :), cmap);

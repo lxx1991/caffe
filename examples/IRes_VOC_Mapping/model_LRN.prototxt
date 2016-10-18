@@ -18,6 +18,12 @@ input_dim: 1
 input_dim: 480
 input_dim: 480
 
+input: "label_p"
+input_dim: 1
+input_dim: 2
+input_dim: 7
+input_dim: 7
+
 input: "v2_data"
 input_dim: 1
 input_dim: 3
@@ -35,6 +41,12 @@ input_dim: 1
 input_dim: 1
 input_dim: 480
 input_dim: 480
+
+input: "v2_label_p"
+input_dim: 1
+input_dim: 1
+input_dim: 7
+input_dim: 7
 
 ################################ image 1 ################################
 
@@ -9402,15 +9414,6 @@ layer {
   type: "ReLU"
   bottom: "inception_resnet_c_5_elt"
   top: "inception_resnet_c_5_elt"
-}
-layer {
-  name: "dropout"
-  type: "Dropout"
-  bottom: "inception_resnet_c_5_elt"
-  top: "inception_resnet_c_5_elt"
-  dropout_param {
-    dropout_ratio: 0.1
-  }
 }
 #################################
 
@@ -18846,15 +18849,6 @@ layer {
   bottom: "v2_inception_resnet_c_5_elt"
   top: "v2_inception_resnet_c_5_elt"
 }
-layer {
-  name: "v2_dropout"
-  type: "Dropout"
-  bottom: "v2_inception_resnet_c_5_elt"
-  top: "v2_inception_resnet_c_5_elt"
-  dropout_param {
-    dropout_ratio: 0.1
-  }
-}
 #################################
 
 #################################
@@ -19087,10 +19081,22 @@ layer {
 }
 
 layer {
+  name: "mapping_3_LRN_2"
+  type: "Eltwise"
+  bottom: "mapping_3_LRN"
+  bottom: "mapping_3_LRN"
+  top: "mapping_3_LRN_2"
+  eltwise_param {
+    operation: PROD
+  }
+}
+
+
+layer {
   name: "mapping"
   type: "LearntMapping"
   bottom: "roi_pool1"
-  bottom: "mapping_3_LRN"
+  bottom: "mapping_3_LRN_2"
   top: "mapping"
 }
 
@@ -19103,4 +19109,23 @@ layer {
   propagate_down: true
   propagate_down: false
   loss_weight: 0.000005
+}
+
+
+#################################
+
+layer {
+  name: "mapping_label_p"
+  type: "LearntMapping"
+  bottom: "label_p"
+  bottom: "mapping_3_LRN_2"
+  top: "mapping_label_p"
+}
+
+layer {
+  name: "loss_label_p"
+  type: "SoftmaxWithLoss"
+  bottom: "mapping_label_p"
+  bottom: "v2_label_p"
+  top: "loss_label_p"
 }

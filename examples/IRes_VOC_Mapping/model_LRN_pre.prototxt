@@ -18,6 +18,12 @@ input_dim: 1
 input_dim: 480
 input_dim: 480
 
+input: "label_p"
+input_dim: 1
+input_dim: 2
+input_dim: 7
+input_dim: 7
+
 input: "v2_data"
 input_dim: 1
 input_dim: 3
@@ -35,6 +41,12 @@ input_dim: 1
 input_dim: 1
 input_dim: 480
 input_dim: 480
+
+input: "v2_label_p"
+input_dim: 1
+input_dim: 1
+input_dim: 7
+input_dim: 7
 
 ################################ image 1 ################################
 
@@ -19008,7 +19020,7 @@ layer {
   }
   param {
     lr_mult: 2.0
-    decay_mult: 0.0
+    decay_mult: 0
   }
   convolution_param {
     num_output: 128
@@ -19040,7 +19052,7 @@ layer {
   top: "mapping_3"
   param {
     lr_mult: 1.0
-    decay_mult: 1.0
+    decay_mult: 0
   }
   param {
     lr_mult: 2.0
@@ -19055,13 +19067,6 @@ layer {
       type: "constant"
     }
   }
-}
-
-layer {
-  name: "mapping_3_relu"
-  type: "ReLU"
-  bottom: "mapping_3"
-  top: "mapping_3"
 }
 
 layer {
@@ -19087,10 +19092,22 @@ layer {
 }
 
 layer {
+  name: "mapping_3_LRN_2"
+  type: "Eltwise"
+  bottom: "mapping_3_LRN"
+  bottom: "mapping_3_LRN"
+  top: "mapping_3_LRN_2"
+  eltwise_param {
+    operation: PROD
+  }
+}
+
+
+layer {
   name: "mapping"
   type: "LearntMapping"
   bottom: "roi_pool1"
-  bottom: "mapping_3_LRN"
+  bottom: "mapping_3_LRN_2"
   top: "mapping"
 }
 
@@ -19102,5 +19119,24 @@ layer {
   top: "loss2"
   propagate_down: true
   propagate_down: false
-  loss_weight: 0.000005
+  loss_weight: 0.0001
+}
+
+
+#################################
+
+layer {
+  name: "mapping_label_p"
+  type: "LearntMapping"
+  bottom: "label_p"
+  bottom: "mapping_3_LRN_2"
+  top: "mapping_label_p"
+}
+
+layer {
+  name: "loss_label_p"
+  type: "SoftmaxWithLoss"
+  bottom: "mapping_label_p"
+  bottom: "v2_label_p"
+  top: "loss_label_p"
 }
